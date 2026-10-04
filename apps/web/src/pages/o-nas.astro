@@ -1,0 +1,146 @@
+---
+import Base from '../layouts/Base.astro';
+import Partnerstwo from '../components/Partnerstwo.astro';
+import { firma } from '../data/site';
+---
+<Base
+  title="O nas — Grupa Nieruchomości, Autoryzowany Partner Zboralscy Group"
+  description="Kim jesteśmy, jak pracujemy i gdzie działamy. Pośrednictwo, przygotowanie nieruchomości i projekty inwestycyjne w Białymstoku i województwie podlaskim."
+  image="/images/o-nas-hero.jpg"
+>
+  <nav class="okruchy" aria-label="Ścieżka nawigacji">
+    <div class="kontener">
+      <ol><li><a href="/">Strona główna</a></li><li aria-current="page">O nas</li></ol>
+    </div>
+  </nav>
+
+  <section class="naglowek-strony">
+    <div class="kontener naglowek-strony__siatka">
+      <div class="naglowek-strony__tresc">
+        <h1>Prowadzimy sprawy nieruchomości od początku do końca</h1>
+        <p class="naglowek-strony__lead">
+          Grupa Nieruchomości zajmuje się sprzedażą i zakupem nieruchomości oraz ich przygotowaniem: od porządku
+          przed zdjęciami po projekt i wykończenie. Działamy w Białymstoku i w całym województwie podlaskim.
+        </p>
+        <Partnerstwo />
+      </div>
+      <div class="panorama panorama--pas naglowek-strony__foto">
+        <img src="/images/o-nas-hero.jpg" width="1536" height="1024" alt="Biurko z rzutami mieszkań, próbkami materiałów i kubkiem kawy" fetchpriority="high" decoding="async" />
+      </div>
+    </div>
+  </section>
+
+  <section class="sekcja">
+    <div class="kontener wstep">
+      <h2 class="odsloniecie">Czym się zajmujemy</h2>
+      <p>
+        Większość firm na tym rynku robi jedną rzecz: pośredniczy w transakcji albo remontuje. My łączymy oba
+        obszary, bo najczęściej właśnie tam gubi się czas i pieniądze — sprzedający nie wie, czy remont się opłaci,
+        a kupujący nie potrafi ocenić, ile będzie kosztowało doprowadzenie mieszkania do stanu, jakiego oczekuje.
+      </p>
+      <p>
+        Prowadzimy klienta przez całość procesu albo przez ten jego fragment, w którym rzeczywiście jesteśmy
+        potrzebni: sprzedaż, zakup, wyszukanie nieruchomości, negocjacje, przygotowanie do sprzedaży,
+        projektowanie, remont i wykończenie oraz przygotowanie projektów inwestycyjnych.
+      </p>
+    </div>
+  </section>
+
+  <section class="sekcja sekcja--szara">
+    <div class="kontener">
+      <h2 class="odsloniecie">Jak pracujemy</h2>
+      <div class="zasady">
+        <article>
+          <h3>Najpierw cel, potem zakres</h3>
+          <p>Nie zaczynamy od listy prac. Zaczynamy od pytania, co ma się wydarzyć i w jakim terminie — dopiero z tego wynika, co warto zrobić, a czego nie.</p>
+        </article>
+        <article>
+          <h3>Koszty przed decyzją</h3>
+          <p>Warianty i ich orientacyjny koszt pokazujemy, zanim cokolwiek ruszy. Każdą zmianę zakresu w trakcie wyceniamy przed wykonaniem.</p>
+        </article>
+        <article>
+          <h3>Jeden plan dla całego procesu</h3>
+          <p>Sprzedaż, przygotowanie lokalu i prace wykończeniowe planujemy razem, żeby decyzje z jednego etapu nie psuły kolejnego.</p>
+        </article>
+        <article>
+          <h3>Mówimy też, kiedy nie warto</h3>
+          <p>Jeśli koszt prac nie ma szansy się zwrócić albo termin jest za krótki, powiemy to wprost. Taka rekomendacja też jest wynikiem naszej pracy.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="sekcja">
+    <div class="kontener partnerstwo-sekcja">
+      <div>
+        <h2 class="odsloniecie">Autoryzowany Partner Zboralscy Group</h2>
+        <p>
+          Pośrednictwo w obrocie nieruchomościami prowadzimy jako Autoryzowany Partner Zboralscy Group. Dla Ciebie
+          oznacza to jeden punkt kontaktu — po naszej stronie — oraz zaplecze partnera przy obsłudze transakcji.
+        </p>
+        <p class="partnerstwo-sekcja__uwaga">
+          Marką prowadzącą serwis i Twoją współpracę jest Grupa Nieruchomości. Zboralscy Group nie jest właścicielem
+          tego serwisu.
+        </p>
+      </div>
+      <div class="partnerstwo-sekcja__znak">
+        <Partnerstwo opis={false} />
+      </div>
+    </div>
+  </section>
+
+  <section class="sekcja sekcja--szara" id="obszar-dzialania">
+    <div class="kontener obszar">
+      <h2 class="odsloniecie">Gdzie działamy</h2>
+      <p>
+        Pracujemy przede wszystkim w Białymstoku — we wszystkich jego częściach — a poza miastem w pozostałych
+        miejscowościach województwa podlaskiego. Zakres pracy poza Białymstokiem ustalamy indywidualnie.
+      </p>
+      <a class="link-mocny" href="/obszar-dzialania">Zobacz, w czym pomagamy w poszczególnych miejscowościach</a>
+    </div>
+  </section>
+
+  <section class="sekcja">
+    <div class="kontener kontakt-krotki">
+      <div>
+        <h2>Porozmawiajmy</h2>
+        <p>Biuro: {firma.biuro.ulica}, {firma.biuro.kod} {firma.biuro.miasto}.</p>
+        <p><a class="duzy" href={firma.telefonHref}>{firma.telefon}</a></p>
+        <p><a href={`mailto:${firma.email}`}>{firma.email}</a></p>
+      </div>
+      <a class="przycisk" href="/kontakt">Napisz do nas</a>
+    </div>
+  </section>
+
+</Base>
+
+<style>
+  .okruchy { border-bottom: 1px solid var(--linia); font-size: 14px; }
+  .okruchy ol { display: flex; gap: 10px; padding-block: 14px; color: var(--tekst-drugi); }
+  .okruchy li + li::before { content: '/'; margin-right: 10px; color: var(--linia-mocna); }
+
+  .naglowek-strony { padding-block: clamp(32px, 4vw, 64px) 0; }
+  .naglowek-strony__siatka { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: center; }
+  .naglowek-strony__tresc { display: flex; flex-direction: column; gap: 24px; align-items: flex-start; min-width: 0; }
+  .naglowek-strony h1 { font-size: clamp(2rem, 3.4vw, 3.2rem); }
+  .naglowek-strony__lead { font-size: clamp(1.02rem, 1.3vw, 1.15rem); max-width: 48ch; }
+  .naglowek-strony__foto { height: clamp(230px, 30vw, 420px); }
+  @media (max-width: 900px) { .naglowek-strony__siatka { grid-template-columns: 1fr; } }
+
+  .wstep { max-width: 68ch; display: flex; flex-direction: column; gap: 18px; }
+  .zasady { margin-top: 36px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px; }
+  .zasady article { border-top: 2px solid var(--zloto); padding-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .zasady p { color: var(--tekst-drugi); }
+
+  .partnerstwo-sekcja { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 320px); gap: clamp(24px, 4vw, 64px); align-items: center; }
+  .partnerstwo-sekcja > div:first-child { display: flex; flex-direction: column; gap: 16px; max-width: 60ch; }
+  .partnerstwo-sekcja__uwaga { color: var(--tekst-drugi); font-size: 0.97rem; border-left: 2px solid var(--zloto); padding-left: 16px; }
+  .partnerstwo-sekcja__znak { background: var(--szary-tlo); padding: 28px; }
+  @media (max-width: 900px) { .partnerstwo-sekcja { grid-template-columns: 1fr; } }
+
+  .obszar { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; max-width: 64ch; }
+
+  .kontakt-krotki { display: flex; justify-content: space-between; align-items: center; gap: 32px; flex-wrap: wrap; }
+  .kontakt-krotki > div { display: flex; flex-direction: column; gap: 8px; }
+  .kontakt-krotki .duzy { font-family: var(--font-naglowek); font-size: 1.6rem; text-decoration: none; }
+</style>

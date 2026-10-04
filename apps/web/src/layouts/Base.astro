@@ -1,0 +1,94 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Cookies from '../components/Cookies.astro';
+import Panorama from '../components/Panorama.astro';
+import { firma } from '../data/site';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: string;
+  noindex?: boolean;
+  faq?: { pytanie: string; odpowiedz: string }[];
+  daneStrukturalne?: Record<string, unknown>[];
+}
+const { title, description, image = '/images/og-default.jpg', noindex = false, faq, daneStrukturalne = [] } = Astro.props;
+const kanoniczny = new URL(Astro.url.pathname, Astro.site).href.replace(/\/$/, '') || Astro.site!.href;
+const obrazAbs = new URL(image, Astro.site).href;
+
+const dane = {
+  '@context': 'https://schema.org',
+  '@type': 'RealEstateAgent',
+  name: firma.nazwa,
+  legalName: firma.nazwaPrawna,
+  url: Astro.site?.href,
+  telephone: firma.telefon,
+  email: firma.email,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: firma.biuro.ulica,
+    postalCode: firma.biuro.kod,
+    addressLocality: firma.biuro.miasto,
+    addressCountry: 'PL',
+  },
+  areaServed: [
+    { '@type': 'City', name: 'Białystok' },
+    { '@type': 'AdministrativeArea', name: 'województwo podlaskie' },
+  ],
+  taxID: firma.nip,
+};
+---
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={kanoniczny} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pl_PL" />
+    <meta property="og:site_name" content={firma.nazwa} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={kanoniczny} />
+    <meta property="og:image" content={obrazAbs} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&display=swap"
+    />
+    <script type="application/ld+json" set:html={JSON.stringify(dane)} />
+    {daneStrukturalne.map((d) => <script type="application/ld+json" set:html={JSON.stringify(d)} />)}
+    {faq && faq.length > 0 && (
+      <script
+        type="application/ld+json"
+        set:html={JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: faq.map((p) => ({
+            '@type': 'Question',
+            name: p.pytanie,
+            acceptedAnswer: { '@type': 'Answer', text: p.odpowiedz },
+          })),
+        })}
+      />
+    )}
+  </head>
+  <body>
+    <a class="pomijalny" href="#tresc">Przejdź do treści</a>
+    <div class="postep-strony" aria-hidden="true"><span></span></div>
+    <Header />
+    <main id="tresc">
+      <slot />
+    </main>
+    <Footer />
+    <Cookies />
+    <Panorama />
+  </body>
+</html>

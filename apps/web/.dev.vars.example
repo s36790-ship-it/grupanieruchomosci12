@@ -1,0 +1,2 @@
+# Skopiuj do .dev.vars (plik jest w .gitignore) i wpisz klucz, żeby przetestować formularz lokalnie przez `npm run cf:dev`.
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxx

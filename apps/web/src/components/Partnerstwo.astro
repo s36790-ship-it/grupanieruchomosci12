@@ -1,0 +1,29 @@
+---
+import { firma } from '../data/site';
+interface Props { wariant?: 'jasny' | 'ciemny'; opis?: boolean; }
+const { wariant = 'jasny', opis = true } = Astro.props;
+---
+<div class:list={['partner', `partner--${wariant}`]}>
+  <img
+    src="/images/partner-zboralscy.png"
+    width="178"
+    height="220"
+    alt=""
+    loading="lazy"
+    decoding="async"
+  />
+  <p>
+    <strong>{firma.partner}</strong>
+    {opis && <span>w zakresie pośrednictwa w obrocie nieruchomościami</span>}
+  </p>
+</div>
+
+<style>
+  .partner { display: flex; align-items: center; gap: 14px; }
+  .partner img { width: auto; height: 42px; flex: none; }
+  .partner p { display: flex; flex-direction: column; gap: 2px; }
+  .partner strong { font-size: 15px; font-weight: 600; color: var(--granat); }
+  .partner span { font-size: 14px; color: var(--tekst-drugi); }
+  .partner--ciemny strong { color: var(--zloto); }
+  .partner--ciemny span { color: #C9D2DC; }
+</style>

@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.astro/
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Cloudflare / Wrangler
+.wrangler/
+.dev.vars
+
+# Kopie robocze plików
+.poprzednie-wersje/
+
+# Next.js / Payload
+.next/
+next-env.d.ts
+*.tsbuildinfo

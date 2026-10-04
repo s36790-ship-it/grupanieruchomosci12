@@ -1,0 +1,125 @@
+---
+import Base from '../layouts/Base.astro';
+import { pobierzLokalizacje, pobierzUslugi, pobierzUstawienia } from '../lib/cms';
+
+const [lokalizacje, uslugi, firma] = await Promise.all([pobierzLokalizacje(), pobierzUslugi(), pobierzUstawienia()]);
+
+// Spis stron lokalnych — Białystok zawsze pierwszy, dalej alfabetycznie.
+const wgMiejscowosci = new Map<string, typeof lokalizacje>();
+for (const l of lokalizacje) {
+  if (!wgMiejscowosci.has(l.miejscowosc)) wgMiejscowosci.set(l.miejscowosc, []);
+  wgMiejscowosci.get(l.miejscowosc)!.push(l);
+}
+const miejscowosci = [...wgMiejscowosci.keys()].sort((a, b) =>
+  a === 'Białystok' ? -1 : b === 'Białystok' ? 1 : a.localeCompare(b, 'pl'),
+);
+const glowneUslugi = uslugi.filter((u) => ['sprzedaz-nieruchomosci', 'kupno-nieruchomosci', 'mieszkanie-pod-klucz', 'inwestycje'].includes(u.slug));
+---
+<Base
+  title="Obszar działania — Białystok i województwo podlaskie | Grupa Nieruchomości"
+  description="Sprzedaż, kupno, mieszkania pod klucz i inwestycje w Białymstoku oraz w miejscowościach województwa podlaskiego. Sprawdź, w czym pomagamy w Twojej okolicy."
+  image="/images/lokalizacje-miasto.jpg"
+>
+  <nav class="okruchy" aria-label="Ścieżka nawigacji">
+    <div class="kontener">
+      <ol><li><a href="/">Strona główna</a></li><li aria-current="page">Obszar działania</li></ol>
+    </div>
+  </nav>
+
+  <section class="sekcja">
+    <div class="kontener naglowek-obszaru">
+      <div>
+        <h1>Gdzie działamy</h1>
+        <p class="naglowek-obszaru__lead">
+          Pracujemy przede wszystkim w Białymstoku, a poza miastem w pozostałych miejscowościach województwa
+          podlaskiego. Poniżej znajdziesz opisy tego, jak pomagamy w konkretnych miejscach i sytuacjach.
+        </p>
+        <p class="naglowek-obszaru__biuro">
+          Biuro: {firma.biuro.ulica}, {firma.biuro.kod} {firma.biuro.miasto} ·
+          <a href={firma.telefonHref}>{firma.telefon}</a>
+        </p>
+      </div>
+      <img src="/images/lokalizacje-miasto.jpg" width="1536" height="1024" alt="Osiedle bloków z zielenią i chodnikiem o zachodzie słońca" fetchpriority="high" decoding="async" />
+    </div>
+  </section>
+
+  {miejscowosci.length > 0 ? (
+    <section class="sekcja sekcja--szara" aria-labelledby="spis">
+      <div class="kontener">
+        <h2 id="spis">W czym pomagamy w Twojej okolicy</h2>
+        <div class="spis">
+          {miejscowosci.map((m) => (
+            <section class:list={['spis__grupa', { 'spis__grupa--glowna': m === 'Białystok' }]}>
+              <h3>{m}</h3>
+              <ul>
+                {wgMiejscowosci.get(m)!.map((l) => (
+                  <li><a href={`/${l.slug}`}>{l.tytul}</a></li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </div>
+    </section>
+  ) : (
+    <section class="sekcja sekcja--szara">
+      <div class="kontener">
+        <p class="brak">Opisy poszczególnych miejscowości są w przygotowaniu. Tymczasem napisz lub zadzwoń — powiemy, jak możemy pomóc w Twojej okolicy.</p>
+      </div>
+    </section>
+  )}
+
+  <section class="sekcja">
+    <div class="kontener">
+      <h2>Usługi dostępne w całym regionie</h2>
+      <ul class="powiazania">
+        {glowneUslugi.map((u) => (
+          <li><a href={`/${u.slug}`}><span class="powiazania__tytul">{u.nazwa}</span><span class="powiazania__opis">{u.lead}</span></a></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="sekcja sekcja--szara">
+    <div class="kontener poza-miastem">
+      <div>
+        <h2>Nie widzisz swojej miejscowości?</h2>
+        <p>
+          Obsługujemy także miejscowości, których nie ma jeszcze na tej liście. Napisz, gdzie znajduje się
+          nieruchomość, a odpowiemy wprost, co możemy zrobić. Wycena jest bezpłatna.
+        </p>
+        <a class="przycisk" href="/kontakt">Zapytaj o swoją miejscowość</a>
+      </div>
+      <img src="/images/lokalizacje-podmiejskie.jpg" width="1536" height="1024" alt="Dom jednorodzinny z garażem i ogrodem za ogrodzeniem" loading="lazy" decoding="async" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .okruchy { border-bottom: 1px solid var(--linia); font-size: 14px; }
+  .okruchy ol { display: flex; gap: 10px; padding-block: 14px; color: var(--tekst-drugi); }
+  .okruchy li + li::before { content: '/'; margin-right: 10px; color: var(--linia-mocna); }
+  .naglowek-obszaru { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: center; }
+  .naglowek-obszaru > div { display: flex; flex-direction: column; gap: 18px; }
+  .naglowek-obszaru h1 { font-size: clamp(2rem, 3.6vw, 3.2rem); }
+  .naglowek-obszaru__lead { font-size: 1.12rem; max-width: 52ch; }
+  .naglowek-obszaru__biuro { color: var(--tekst-drugi); font-size: 0.97rem; }
+  .naglowek-obszaru img { width: 100%; height: clamp(220px, 28vw, 400px); object-fit: cover; }
+  .spis { margin-top: 32px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 32px; }
+  .spis__grupa--glowna { grid-column: 1 / -1; }
+  .spis__grupa h3 { font-size: 1.3rem; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--zloto); }
+  .spis__grupa ul { display: flex; flex-direction: column; gap: 10px; }
+  .spis__grupa--glowna ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px 32px; }
+  .spis a { text-decoration: none; }
+  .spis a:hover { text-decoration: underline; }
+  .brak { color: var(--tekst-drugi); max-width: 60ch; }
+  .powiazania { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .powiazania a { display: flex; flex-direction: column; gap: 8px; padding: 22px; border: 1px solid var(--linia-mocna); text-decoration: none; height: 100%; background: var(--biel); }
+  .powiazania a:hover { border-color: var(--granat); }
+  .powiazania__tytul { font-family: var(--font-naglowek); font-size: 1.2rem; color: var(--granat); }
+  .powiazania__opis { color: var(--tekst-drugi); font-size: 0.95rem; }
+  .poza-miastem { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 5vw, 72px); align-items: center; }
+  .poza-miastem > div { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; max-width: 52ch; }
+  .poza-miastem img { width: 100%; height: clamp(220px, 28vw, 380px); object-fit: cover; }
+  @media (max-width: 900px) { .naglowek-obszaru, .poza-miastem { grid-template-columns: 1fr; } }
+</style>

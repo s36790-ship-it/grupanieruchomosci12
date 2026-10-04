@@ -1,0 +1,392 @@
+---
+import Base from '../layouts/Base.astro';
+import Formularz from '../components/Formularz.astro';
+import BlokLokalny from '../components/BlokLokalny.astro';
+import PrzedPo from '../components/PrzedPo.astro';
+import { pobierzUslugi, pobierzUstawienia, pobierzLokalizacje, pobierzPoradniki } from '../lib/cms';
+
+export async function getStaticPaths() {
+  const [uslugi, lokalizacje, poradniki] = await Promise.all([pobierzUslugi(), pobierzLokalizacje(), pobierzPoradniki()]);
+  const poradnikiDla = (slugUslugi: string) => poradniki.filter((p) => p.uslugi.includes(slugUslugi)).slice(0, 3);
+
+  return [
+    ...uslugi.map((u) => ({
+      params: { slug: u.slug },
+      props: {
+        u,
+        lok: null,
+        // Linkowanie wewnętrzne w dół: usługa → jej strony lokalne i poradniki.
+        lokalne: lokalizacje.filter((l) => l.uslugaSlug === u.slug),
+        poradnikiUslugi: poradnikiDla(u.slug),
+      },
+    })),
+    // Podstrony lokalizacyjne pojawiają się dopiero po opublikowaniu w CMS.
+    ...lokalizacje.map((l) => ({
+      params: { slug: l.slug },
+      props: {
+        u: null,
+        lok: l,
+        // Linkowanie wewnętrzne: najpierw ta sama miejscowość, potem ta sama usługa gdzie indziej.
+        powiazane: [
+          ...lokalizacje.filter((x) => x.slug !== l.slug && x.miejscowosc === l.miejscowosc),
+          ...lokalizacje.filter((x) => x.slug !== l.slug && x.miejscowosc !== l.miejscowosc && x.uslugaSlug === l.uslugaSlug),
+        ].slice(0, 4),
+        poradnikiUslugi: poradnikiDla(l.uslugaSlug),
+      },
+    })),
+  ];
+}
+
+const { u, lok, powiazane = [], lokalne = [], poradnikiUslugi = [] } = Astro.props as any;
+const adresStrony = new URL(Astro.url.pathname, Astro.site).href;
+const daneLokalne = lok
+  ? [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Strona główna', item: Astro.site?.href },
+          { '@type': 'ListItem', position: 2, name: 'Obszar działania', item: new URL('/obszar-dzialania', Astro.site).href },
+          { '@type': 'ListItem', position: 3, name: lok.tytul, item: adresStrony },
+        ],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name: lok.tytul,
+        serviceType: lok.uslugaNazwa,
+        areaServed: { '@type': 'Place', name: lok.miejscowosc },
+        provider: { '@type': 'RealEstateAgent', name: 'Grupa Nieruchomości', url: Astro.site?.href },
+        url: adresStrony,
+      },
+    ]
+  : [];
+const [pierwszyBlok, ...kolejneBloki] = lok?.bloki ?? [];
+const t = u;
+const firma = await pobierzUstawienia();
+---
+{lok ? (
+  <Base title={lok.metaTitle} description={lok.metaDescription} faq={lok.faq} daneStrukturalne={daneLokalne}>
+    <nav class="okruchy" aria-label="Ścieżka nawigacji">
+      <div class="kontener">
+        <ol>
+          <li><a href="/">Strona główna</a></li>
+          <li><a href="/obszar-dzialania">Obszar działania</a></li>
+          <li aria-current="page">{lok.tytul}</li>
+        </ol>
+      </div>
+    </nav>
+
+    <section class="sekcja">
+      <div class="kontener lok">
+        <p class="lok__miejsce">{lok.miejscowosc} · {lok.uslugaNazwa}</p>
+        <h1>{lok.tytul}</h1>
+        <div class="lok__wstep">
+          {lok.tresc.map((akapit: string) => <p>{akapit}</p>)}
+        </div>
+        <a class="przycisk" href="#formularz">Zapytaj o bezpłatną wycenę</a>
+      </div>
+    </section>
+
+    {pierwszyBlok && (
+      <section class="sekcja sekcja--cienka">
+        <div class="kontener"><BlokLokalny blok={pierwszyBlok} /></div>
+      </section>
+    )}
+
+    {lok.proces.length > 0 && (
+      <section class="sekcja sekcja--szara">
+        <div class="kontener">
+          <h2>Jak to wygląda u nas</h2>
+          <ol class="proces">
+            {lok.proces.map((k: { nazwa: string; opis: string }, i: number) => (
+              <li>
+                <span class="proces__nr">{String(i + 1).padStart(2, '0')}</span>
+                <div><h3>{k.nazwa}</h3><p>{k.opis}</p></div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+    )}
+
+    {kolejneBloki.length > 0 && (
+      <section class="sekcja">
+        <div class="kontener lok__bloki">
+          {kolejneBloki.map((b: any) => <BlokLokalny blok={b} />)}
+        </div>
+      </section>
+    )}
+
+    {lok.faq.length > 0 && (
+      <section class="sekcja sekcja--szara">
+        <div class="kontener faq">
+          <h2>Pytania i odpowiedzi</h2>
+          <div class="faq__lista">
+            {lok.faq.map((p: { pytanie: string; odpowiedz: string }) => (
+              <details><summary>{p.pytanie}</summary><p>{p.odpowiedz}</p></details>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <section class="sekcja">
+      <div class="kontener">
+        <h2>Zobacz też</h2>
+        <ul class="powiazania">
+          {lok.uslugaSlug && (
+            <li><a href={`/${lok.uslugaSlug}`}><span class="powiazania__tytul">{lok.uslugaNazwa}</span><span class="powiazania__opis">Pełny opis usługi</span></a></li>
+          )}
+          {powiazane.map((p: any) => (
+            <li><a href={`/${p.slug}`}><span class="powiazania__tytul">{p.tytul}</span><span class="powiazania__opis">{p.miejscowosc}</span></a></li>
+          ))}
+          <li><a href="/obszar-dzialania"><span class="powiazania__tytul">Obszar działania</span><span class="powiazania__opis">Wszystkie miejscowości</span></a></li>
+        </ul>
+      </div>
+    </section>
+
+
+    {poradnikiUslugi.length > 0 && (
+      <section class="sekcja">
+        <div class="kontener">
+          <h2>Warto przeczytać</h2>
+          <ul class="powiazania">
+            {poradnikiUslugi.map((p: any) => (
+              <li><a href={`/poradniki/${p.slug}`}><span class="powiazania__tytul">{p.tytul}</span><span class="powiazania__opis">{p.lead}</span></a></li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )}
+
+    <section class="sekcja sekcja--szara" id="formularz">
+      <div class="kontener formularz-sekcja">
+        <div>
+          <h2>Napisz! A my wycenimy!</h2>
+          <p>Wycena jest bezpłatna i nie zobowiązuje do współpracy.</p>
+          <p class="formularz-sekcja__telefon"><a href={firma.telefonHref}>{firma.telefon}</a></p>
+        </div>
+        <Formularz usluga={`${lok.uslugaNazwa} — ${lok.miejscowosc}`} />
+      </div>
+    </section>
+  </Base>
+) : (
+<Base title={u.metaTitle} description={u.metaDescription} image={u.obraz} faq={t.faq}>
+
+  <nav class="okruchy" aria-label="Ścieżka nawigacji">
+    <div class="kontener">
+      <ol>
+        <li><a href="/">Strona główna</a></li>
+        <li aria-current="page">{u.nazwa}</li>
+      </ol>
+    </div>
+  </nav>
+
+  <section class="naglowek-strony">
+    <div class="kontener naglowek-strony__siatka">
+      <div class="naglowek-strony__tresc">
+        <h1>{u.tytul}</h1>
+        <p class="naglowek-strony__lead">{u.lead}</p>
+        <a class="przycisk" href="#formularz">Porozmawiajmy</a>
+      </div>
+      <img src={u.obraz} width="1536" height="1024" alt={u.alt} fetchpriority="high" decoding="async" />
+    </div>
+  </section>
+
+  <section class="sekcja">
+    <div class="kontener wstep">
+      {t.wstep.map((akapit) => <p>{akapit}</p>)}
+    </div>
+  </section>
+
+  <section class="sekcja sekcja--szara" aria-labelledby="proces">
+    <div class="kontener">
+      <h2 id="proces">{t.procesTytul}</h2>
+      <ol class="proces">
+        {t.proces.map((k, i) => (
+          <li>
+            <span class="proces__nr">{String(i + 1).padStart(2, '0')}</span>
+            <div>
+              <h3>{k.nazwa}</h3>
+              <p>{k.opis}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  {t.blok && (
+    <section class="sekcja" aria-labelledby="blok">
+      <div class="kontener">
+        <h2 id="blok">{t.blokTytul}</h2>
+        <div class="blok">
+          {t.blok.map((b) => (
+            <article>
+              <h3>{b.nazwa}</h3>
+              <p>{b.opis}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="sekcja" aria-labelledby="zakres">
+    <div class="kontener zakres">
+      <div>
+        <h2 id="zakres">{t.zakresTytul}</h2>
+        {t.uwaga && <p class="zakres__uwaga">{t.uwaga}</p>}
+      </div>
+      <ul class="zakres__lista">
+        {t.zakres.map((z) => (<li>{z}</li>))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="sekcja sekcja--szara" aria-labelledby="faq">
+    <div class="kontener faq">
+      <h2 id="faq">{t.faqTytul}</h2>
+      <div class="faq__lista">
+        {t.faq.map((p) => (
+          <details>
+            <summary>{p.pytanie}</summary>
+            <p>{p.odpowiedz}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {u?.przedPo && (
+    <section class="sekcja sekcja--szara" aria-labelledby="przedpo">
+      <div class="kontener przedpo-sekcja">
+        <h2 id="przedpo">Przed i po</h2>
+        <PrzedPo
+          przed={u.przedPo.przed}
+          po={u.przedPo.po}
+          opis={u.przedPo.opis}
+          pogladowe={u.przedPo.pogladowe}
+        />
+      </div>
+    </section>
+  )}
+
+  {lokalne.length > 0 && (
+    <section class="sekcja" aria-labelledby="okolica">
+      <div class="kontener">
+        <h2 id="okolica">W Twojej okolicy</h2>
+        <ul class="powiazania">
+          {lokalne.map((l: any) => (
+            <li><a href={`/${l.slug}`}><span class="powiazania__tytul">{l.tytul}</span><span class="powiazania__opis">{l.miejscowosc}</span></a></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  {poradnikiUslugi.length > 0 && (
+    <section class="sekcja sekcja--szara">
+      <div class="kontener">
+        <h2>Warto przeczytać</h2>
+        <ul class="powiazania">
+          {poradnikiUslugi.map((p: any) => (
+            <li><a href={`/poradniki/${p.slug}`}><span class="powiazania__tytul">{p.tytul}</span><span class="powiazania__opis">{p.lead}</span></a></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <section class="sekcja" aria-labelledby="dalej">
+    <div class="kontener">
+      <h2 id="dalej">Co dalej</h2>
+      <ul class="powiazania">
+        {t.powiazania.map((p) => (
+          <li>
+            <a href={p.href}>
+              <span class="powiazania__tytul">{p.etykieta}</span>
+              <span class="powiazania__opis">{p.opis}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="sekcja sekcja--szara" id="formularz">
+    <div class="kontener formularz-sekcja">
+      <div>
+        <h2>{t.ctaTytul}</h2>
+        <p>{t.ctaOpis}</p>
+        <p class="formularz-sekcja__telefon"><a href={firma.telefonHref}>{firma.telefon}</a></p>
+        <p class="formularz-sekcja__biuro">{firma.biuro.ulica}, {firma.biuro.kod} {firma.biuro.miasto}</p>
+      </div>
+      <Formularz usluga={u.nazwa} />
+    </div>
+  </section>
+</Base>
+)}
+
+<style>
+  .okruchy { border-bottom: 1px solid var(--linia); font-size: 14px; }
+  .okruchy ol { display: flex; gap: 10px; padding-block: 14px; color: var(--tekst-drugi); flex-wrap: wrap; }
+  .okruchy li + li::before { content: '/'; margin-right: 10px; color: var(--linia-mocna); }
+
+  .naglowek-strony { padding-block: clamp(32px, 4vw, 64px) 0; }
+  .naglowek-strony__siatka { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: center; }
+  .naglowek-strony__tresc { display: flex; flex-direction: column; gap: 24px; align-items: flex-start; min-width: 0; }
+  .naglowek-strony h1 { font-size: clamp(2rem, 3.6vw, 3.4rem); hyphens: auto; }
+  .naglowek-strony__lead { font-size: clamp(1.02rem, 1.3vw, 1.15rem); max-width: 46ch; }
+  .naglowek-strony img { width: 100%; height: clamp(230px, 30vw, 420px); object-fit: cover; }
+  @media (max-width: 900px) { .naglowek-strony__siatka { grid-template-columns: 1fr; } }
+
+  .wstep { max-width: 68ch; display: flex; flex-direction: column; gap: 18px; font-size: clamp(1.02rem, 1.3vw, 1.12rem); }
+
+  .proces { margin-top: 40px; display: grid; gap: 4px; }
+  .proces li { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 20px; padding-block: 24px; border-top: 1px solid var(--linia-mocna); align-items: start; }
+  .proces li:last-child { border-bottom: 1px solid var(--linia-mocna); }
+  .proces__nr { font-family: var(--font-naglowek); font-size: 1.25rem; color: var(--zloto); padding-top: 2px; }
+  .proces h3 { margin-bottom: 6px; }
+  .proces p { color: var(--tekst-drugi); max-width: 68ch; }
+  @media (max-width: 560px) { .proces li { grid-template-columns: 44px minmax(0, 1fr); gap: 14px; } }
+
+  .blok { margin-top: 36px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px; }
+  .blok article { border-top: 2px solid var(--zloto); padding-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .blok p { color: var(--tekst-drugi); }
+
+  .zakres { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 5vw, 72px); align-items: start; }
+  .zakres__uwaga { margin-top: 18px; color: var(--tekst-drugi); border-left: 2px solid var(--zloto); padding-left: 16px; max-width: 52ch; }
+  .zakres__lista { display: flex; flex-direction: column; border-bottom: 1px solid var(--linia); }
+  .zakres__lista li { padding-block: 14px; border-top: 1px solid var(--linia); padding-left: 26px; position: relative; }
+  .zakres__lista li::before { content: ''; position: absolute; left: 0; top: 22px; width: 12px; height: 1px; background: var(--zloto); }
+  @media (max-width: 900px) { .zakres { grid-template-columns: 1fr; } }
+
+  .faq { max-width: 74ch; }
+  .faq__lista { margin-top: 28px; border-bottom: 1px solid var(--linia-mocna); }
+  .faq details { border-top: 1px solid var(--linia-mocna); }
+  .faq summary { cursor: pointer; padding-block: 18px; font-weight: 600; font-size: 1.05rem; list-style: none; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: '+'; font-size: 1.4rem; color: var(--zloto); line-height: 1; }
+  .faq details[open] summary::after { content: '–'; }
+  .faq details p { padding-bottom: 20px; color: var(--tekst-drugi); max-width: 66ch; }
+
+  .powiazania { margin-top: 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .powiazania a { display: flex; flex-direction: column; gap: 8px; padding: 22px; border: 1px solid var(--linia-mocna); text-decoration: none; height: 100%; }
+  .powiazania a:hover { border-color: var(--granat); }
+  .powiazania__tytul { font-family: var(--font-naglowek); font-size: 1.2rem; color: var(--granat); }
+  .powiazania__opis { color: var(--tekst-drugi); font-size: 0.97rem; }
+
+  .formularz-sekcja { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 540px); gap: clamp(28px, 5vw, 80px); align-items: start; }
+  .formularz-sekcja > div { display: flex; flex-direction: column; gap: 16px; }
+  .formularz-sekcja__telefon a { font-family: var(--font-naglowek); font-size: 1.6rem; text-decoration: none; }
+  .formularz-sekcja__biuro { color: var(--tekst-drugi); font-size: 0.97rem; }
+  .lok { display: flex; flex-direction: column; gap: 20px; align-items: flex-start; max-width: 72ch; }
+  .lok h1 { font-size: clamp(2rem, 3.6vw, 3.2rem); }
+  .lok__miejsce { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tekst-drugi); }
+  .lok__wstep { display: flex; flex-direction: column; gap: 16px; font-size: clamp(1.02rem, 1.3vw, 1.12rem); }
+  .lok__bloki { display: flex; flex-direction: column; gap: clamp(40px, 6vw, 72px); }
+  .sekcja--cienka { padding-block: 0 clamp(40px, 6vw, 72px); }
+  @media (max-width: 900px) { .formularz-sekcja { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,76 @@
+---
+import { firma, uslugi } from '../data/site';
+import Partnerstwo from '../components/Partnerstwo.astro';
+import { pobierzPoradniki } from '../lib/cms';
+
+const saPoradniki = (await pobierzPoradniki()).length > 0;
+const rok = new Date().getFullYear();
+---
+<footer class="stopka">
+  <div class="kontener stopka__siatka">
+    <div class="stopka__marka">
+      <span class="stopka__znak">{firma.nazwa}</span>
+      <p>Biuro: {firma.biuro.ulica}<br />{firma.biuro.kod} {firma.biuro.miasto}</p>
+      <p>Obsługujemy {firma.obszar}</p>
+      <Partnerstwo wariant="ciemny" opis={false} />
+    </div>
+
+    <nav aria-label="Usługi">
+      <h2 class="stopka__tytul">Usługi</h2>
+      <ul>
+        {uslugi.map((u) => (<li><a href={`/${u.slug}`}>{u.nazwa}</a></li>))}
+      </ul>
+    </nav>
+
+    <nav aria-label="Serwis">
+      <h2 class="stopka__tytul">Serwis</h2>
+      <ul>
+        <li><a href="/o-nas">O nas</a></li>
+        <li><a href="/kontakt">Kontakt</a></li>
+        <li><a href="/obszar-dzialania">Obszar działania</a></li>
+        {saPoradniki && <li><a href="/poradniki">Poradniki</a></li>}
+        <li><a href="/polityka-prywatnosci">Polityka prywatności</a></li>
+        <li><a href="/cookies">Pliki cookies</a></li>
+        <li><a href="#" data-otworz-zgody>Ustawienia cookies</a></li>
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="stopka__tytul">Dane firmy</h2>
+      <ul>
+        <li>{firma.nazwaPrawna}</li>
+        <li>{firma.siedziba.ulica}</li>
+        <li>{firma.siedziba.kod} {firma.siedziba.miasto}</li>
+        <li>NIP {firma.nip}</li>
+        <li>KRS {firma.krs}</li>
+        <li><a href={firma.telefonHref}>{firma.telefon}</a></li>
+        <li><a href={`mailto:${firma.email}`}>{firma.email}</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="kontener stopka__dol">
+    <p>© {rok} {firma.nazwaPrawna}</p>
+    <p class="stopka__autor">
+      Projekt i wykonanie:
+      <a href="https://dawid-minta.pl" rel="noopener">Dawid Minta</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .stopka { background: var(--granat); color: var(--biel); padding-block: 72px 32px; margin-top: 0; }
+  .stopka a { color: var(--biel); text-decoration: none; }
+  .stopka a:hover { color: var(--biel); text-decoration: underline; }
+  .stopka__siatka { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 40px; }
+  .stopka__marka { display: flex; flex-direction: column; gap: 14px; }
+  .stopka__znak { font-family: var(--font-naglowek); font-size: 1.5rem; font-weight: 600; }
+  .stopka__marka p { font-size: 15px; color: #C9D2DC; }
+  .stopka__partner { font-weight: 600; color: var(--zloto) !important; }
+  .stopka__tytul { font-family: var(--font-tekst); font-size: 14px; font-weight: 500; color: #C9D2DC; margin-bottom: 14px; }
+  .stopka ul { display: flex; flex-direction: column; gap: 10px; font-size: 15px; }
+  .stopka__dol { border-top: 1px solid var(--granat-jasny); margin-top: 48px; padding-top: 24px; font-size: 14px; color: #C9D2DC; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .stopka__autor a { color: #C9D2DC; text-decoration: underline; text-underline-offset: 4px; }
+  .stopka__autor a:hover { color: var(--biel); }
+  @media (max-width: 900px) { .stopka__siatka { grid-template-columns: 1fr 1fr; gap: 32px; } }
+  @media (max-width: 560px) { .stopka__siatka { grid-template-columns: 1fr; } }
+</style>

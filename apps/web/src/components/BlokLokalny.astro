@@ -1,0 +1,59 @@
+---
+import type { Blok } from '../lib/cms';
+interface Props { blok: Blok }
+const { blok } = Astro.props;
+---
+{blok.typ === 'lista' && (
+  <section class="blok-lista">
+    <h2>{blok.tytul}</h2>
+    {blok.wstep && <p class="blok__wstep">{blok.wstep}</p>}
+    <ul>
+      {blok.punkty.map((p) => <li>{p}</li>)}
+    </ul>
+  </section>
+)}
+
+{blok.typ === 'porownanie' && (
+  <section class="blok-porownanie">
+    <h2>{blok.tytul}</h2>
+    <div class="blok-porownanie__przewijanie">
+      <table>
+        <thead>
+          <tr><th scope="col"><span class="ukryte">Czego dotyczy</span></th><th scope="col">{blok.kolumnaA}</th><th scope="col">{blok.kolumnaB}</th></tr>
+        </thead>
+        <tbody>
+          {blok.wiersze.map((w) => (
+            <tr><th scope="row">{w.cecha}</th><td>{w.a}</td><td>{w.b}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    {blok.podsumowanie && <p class="blok__wstep">{blok.podsumowanie}</p>}
+  </section>
+)}
+
+{blok.typ === 'uwaga' && (
+  <aside class="blok-uwaga">
+    <h2>{blok.tytul}</h2>
+    <p>{blok.tresc}</p>
+  </aside>
+)}
+
+<style>
+  section, aside { display: flex; flex-direction: column; gap: 14px; }
+  h2 { font-size: clamp(1.4rem, 2.4vw, 1.9rem); }
+  .blok__wstep { color: var(--tekst-drugi); max-width: 64ch; }
+  .blok-lista ul { display: flex; flex-direction: column; border-bottom: 1px solid var(--linia); max-width: 70ch; }
+  .blok-lista li { position: relative; padding: 14px 0 14px 34px; border-top: 1px solid var(--linia); }
+  .blok-lista li::before { content: ''; position: absolute; left: 4px; top: 19px; width: 14px; height: 8px; border-left: 2px solid var(--zloto); border-bottom: 2px solid var(--zloto); transform: rotate(-45deg); }
+  .blok-porownanie__przewijanie { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.97rem; }
+  th, td { text-align: left; vertical-align: top; padding: 14px 16px; border-bottom: 1px solid var(--linia-mocna); }
+  thead th { font-family: var(--font-naglowek); font-size: 1.1rem; font-weight: 500; color: var(--granat); border-bottom: 2px solid var(--zloto); }
+  tbody th { font-weight: 600; width: 22%; }
+  td { color: var(--tekst-drugi); }
+  .blok-uwaga { background: var(--szary-tlo); border-left: 3px solid var(--zloto); padding: clamp(20px, 3vw, 32px); max-width: 72ch; }
+  .blok-uwaga h2 { font-size: clamp(1.2rem, 2vw, 1.5rem); }
+  .blok-uwaga p { color: var(--tekst-drugi); }
+  .ukryte { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+</style>

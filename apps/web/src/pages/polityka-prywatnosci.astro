@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro';
+import { firma } from '../data/site';
+---
+<Base
+  title="Polityka prywatności — Grupa Nieruchomości"
+  description="Kto jest administratorem danych, w jakim celu przetwarzamy dane z formularza kontaktowego i jakie masz prawa."
+>
+  <section class="sekcja">
+    <div class="kontener dokument">
+      <h1>Polityka prywatności</h1>
+
+      <h2>Administrator danych</h2>
+      <p>
+        Administratorem Twoich danych jest {firma.nazwaPrawna}, {firma.siedziba.ulica},
+        {firma.siedziba.kod} {firma.siedziba.miasto}, NIP {firma.nip}, KRS {firma.krs}.
+        Kontakt: <a href={`mailto:${firma.email}`}>{firma.email}</a>, <a href={firma.telefonHref}>{firma.telefon}</a>.
+      </p>
+
+      <h2>Jakie dane zbieramy</h2>
+      <p>
+        Dane, które sam podasz w formularzu: sposób kontaktu (telefon lub e-mail), opcjonalnie imię, temat
+        zapytania, preferowany termin i formę spotkania oraz treść wiadomości. Zapisujemy też nazwę usługi
+        i adres podstrony, z której wysłano zgłoszenie.
+      </p>
+
+      <h2>Po co je przetwarzamy</h2>
+      <ul class="lista">
+        <li>Żeby odpowiedzieć na Twoje zapytanie i ustalić warunki ewentualnej współpracy.</li>
+        <li>Żeby zabezpieczyć formularz przed nadużyciami.</li>
+        <li>Żeby prowadzić statystyki odwiedzin — wyłącznie po Twojej zgodzie i bez Twoich danych kontaktowych.</li>
+      </ul>
+
+      <h2>Czego nie robimy</h2>
+      <ul class="lista">
+        <li>Nie przekazujemy Twoich danych do narzędzi analitycznych — imię, telefon, e-mail ani treść wiadomości nigdy tam nie trafiają.</li>
+        <li>Nie wymagamy zgody marketingowej do zadania zwykłego pytania.</li>
+        <li>Nie sprzedajemy danych.</li>
+      </ul>
+
+      <h2>Komu powierzamy dane</h2>
+      <p>
+        Dostawcom, którzy obsługują techniczne działanie serwisu: hostingowi, dostawcy bazy danych, dostawcy
+        wysyłki poczty oraz — po wyrażeniu zgody — narzędziu analitycznemu. Lista konkretnych podmiotów zostanie
+        uzupełniona po zakończeniu wdrożenia.
+      </p>
+
+      <h2>Jak długo przechowujemy dane</h2>
+      <p>
+        Zapytania przechowujemy przez czas potrzebny do obsługi sprawy i rozliczenia ewentualnej współpracy.
+        Konkretne okresy zostaną ustalone przez firmę.
+      </p>
+
+      <h2>Twoje prawa</h2>
+      <p>
+        Masz prawo dostępu do swoich danych, ich sprostowania, usunięcia, ograniczenia przetwarzania,
+        przenoszenia, a także sprzeciwu wobec przetwarzania. Zgodę, jeśli jej udzieliłeś, możesz wycofać
+        w dowolnym momencie. Przysługuje Ci też skarga do Prezesa Urzędu Ochrony Danych Osobowych.
+      </p>
+
+      <h2>Pliki cookies</h2>
+      <p>
+        Szczegóły znajdziesz w <a href="/cookies">informacji o plikach cookies</a>. Ustawienia możesz zmienić
+        w każdej chwili: <a href="#" data-otworz-zgody>otwórz ustawienia cookies</a>.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .dokument { max-width: 72ch; display: flex; flex-direction: column; gap: 18px; }
+  .dokument h1 { font-size: clamp(2rem, 3.6vw, 3rem); }
+  .dokument h2 { font-size: clamp(1.3rem, 2vw, 1.6rem); margin-top: 18px; }
+  .lista { display: flex; flex-direction: column; gap: 10px; }
+  .lista li { padding-left: 26px; position: relative; }
+  .lista li::before { content: ''; position: absolute; left: 0; top: 13px; width: 12px; height: 1px; background: var(--zloto); }
+</style>

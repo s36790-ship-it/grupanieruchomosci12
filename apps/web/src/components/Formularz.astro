@@ -1,0 +1,148 @@
+---
+interface Props { usluga?: string; }
+const { usluga = 'Strona główna' } = Astro.props;
+
+// W pracy lokalnej mostek podstawia /api pod Payloada; w produkcji ustawiamy PUBLIC_API_URL
+// na adres panelu (np. https://panel.grupa-nieruchomosci.pl/api).
+const ADRES_API = import.meta.env.PUBLIC_API_URL || '/api';
+const EMAIL = 'kontakt@grupa-nieruchomosci.pl';
+---
+<form class="formularz" method="post" action={`${ADRES_API}/zapytanie`} novalidate data-formularz>
+  <input type="hidden" name="usluga" value={usluga} />
+  <input type="hidden" name="sciezka" value={Astro.url.pathname} />
+  <p class="pulapka" aria-hidden="true"><label>Nie wypełniaj tego pola<input type="text" name="firma_www" tabindex="-1" autocomplete="off" /></label></p>
+
+  <fieldset>
+    <legend>Co chcesz zrobić?</legend>
+    <div class="formularz__wybor">
+      <label><input type="radio" name="typ" value="pytanie" checked /> Zadać pytanie</label>
+      <label><input type="radio" name="typ" value="spotkanie" /> Umówić spotkanie</label>
+    </div>
+  </fieldset>
+
+  <p class="pole">
+    <label for="temat">Czego dotyczy zapytanie?</label>
+    <select id="temat" name="temat">
+      <option>Sprzedaż nieruchomości</option>
+      <option>Kupno nieruchomości</option>
+      <option>Mieszkanie pod klucz</option>
+      <option>Inwestycja</option>
+      <option>Inny temat</option>
+    </select>
+  </p>
+
+  <p class="pole">
+    <label for="imie">Imię <span>(opcjonalnie)</span></label>
+    <input id="imie" name="imie" type="text" autocomplete="given-name" />
+  </p>
+
+  <p class="pole">
+    <label for="kontakt">Telefon lub e-mail</label>
+    <input id="kontakt" name="kontakt" type="text" required aria-describedby="kontakt-info" />
+    <span class="pole__info" id="kontakt-info">Wystarczy jeden sposób kontaktu.</span>
+  </p>
+
+  <div class="formularz__para">
+    <p class="pole">
+      <label for="termin">Preferowany termin <span>(opcjonalnie)</span></label>
+      <input id="termin" name="termin" type="date" />
+    </p>
+    <p class="pole">
+      <label for="forma">Forma spotkania</label>
+      <select id="forma" name="forma">
+        <option>Rozmowa telefoniczna</option>
+        <option>Spotkanie online</option>
+        <option>Spotkanie przy nieruchomości</option>
+        <option>Spotkanie w biurze</option>
+      </select>
+    </p>
+  </div>
+
+  <p class="pole">
+    <label for="wiadomosc">Wiadomość <span>(opcjonalnie)</span></label>
+    <textarea id="wiadomosc" name="wiadomosc" rows="4"></textarea>
+  </p>
+
+  <p class="formularz__nota">
+    Administratorem danych jest Grupa Nieruchomości sp. z o.o. Szczegóły w <a href="/polityka-prywatnosci">polityce prywatności</a>.
+  </p>
+
+  <button class="przycisk" type="submit" data-wyslij>Wyślij zgłoszenie</button>
+  <p class="formularz__stan" role="status" data-stan></p>
+  <p class="formularz__mail">
+    Wolisz napisać bezpośrednio? <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
+  </p>
+</form>
+
+<style>
+  .formularz { background: var(--szary-tlo); padding: clamp(24px, 4vw, 40px); display: flex; flex-direction: column; gap: 20px; }
+  .formularz fieldset { border: 0; margin: 0; padding: 0; }
+  .formularz legend { padding: 0 0 10px; font-size: 15px; font-weight: 600; }
+  .formularz__wybor { display: flex; gap: 12px; flex-wrap: wrap; }
+  .formularz__wybor label { flex: 1 1 180px; display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 14px; border: 1px solid var(--linia-mocna); background: var(--biel); border-radius: 2px; cursor: pointer; }
+  .formularz__wybor input { width: 18px; height: 18px; accent-color: var(--granat); }
+  .formularz__para { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .pole { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+  .pole label { font-size: 15px; font-weight: 600; }
+  .pole label span { font-weight: 400; color: var(--tekst-drugi); }
+  .pole input, .pole select, .pole textarea { font: inherit; font-size: 16px; color: var(--tekst); background: var(--biel); border: 1px solid #8A95A1; border-radius: 2px; padding: 12px 14px; min-height: 50px; }
+  .pole textarea { resize: vertical; }
+  .pole__info { font-size: 14px; color: var(--tekst-drugi); }
+  .formularz__nota { font-size: 14px; color: var(--tekst-drugi); }
+  .formularz__stan { font-size: 14px; color: var(--tekst-drugi); border-left: 2px solid var(--zloto); padding-left: 12px; }
+  .formularz__stan:empty { display: none; }
+  .formularz__stan[data-rodzaj='blad'] { color: #8B1E1E; border-color: #8B1E1E; }
+  .formularz__mail { font-size: 14px; color: var(--tekst-drugi); }
+  .pulapka { position: absolute; left: -9999px; }
+  @media (max-width: 560px) { .formularz__para { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('[data-formularz]').forEach((form) => {
+    const stan = form.querySelector<HTMLElement>('[data-stan]')!;
+    const guzik = form.querySelector<HTMLButtonElement>('[data-wyslij]')!;
+
+    const pokaz = (tekst: string, rodzaj: 'ok' | 'blad' = 'ok') => {
+      stan.textContent = tekst;
+      stan.dataset.rodzaj = rodzaj;
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const dane = Object.fromEntries(new FormData(form).entries());
+
+      if (String(dane.kontakt ?? '').trim().length < 6) {
+        pokaz('Podaj telefon lub adres e-mail, żebyśmy mogli odpowiedzieć.', 'blad');
+        form.querySelector<HTMLInputElement>('#kontakt, [name="kontakt"]')?.focus();
+        return;
+      }
+
+      guzik.disabled = true;
+      const pierwotny = guzik.textContent;
+      guzik.textContent = 'Wysyłanie…';
+      pokaz('');
+
+      try {
+        const odp = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dane),
+        });
+        const wynik = await odp.json().catch(() => ({}));
+
+        if (!odp.ok || !wynik.ok) {
+          pokaz(wynik.blad ?? 'Nie udało się wysłać zgłoszenia. Napisz na kontakt@grupa-nieruchomosci.pl albo zadzwoń.', 'blad');
+          return;
+        }
+
+        form.reset();
+        pokaz('Dziękujemy, zgłoszenie do nas dotarło. Odezwiemy się na podany kontakt.');
+      } catch {
+        pokaz('Brak połączenia z serwerem. Napisz na kontakt@grupa-nieruchomosci.pl albo zadzwoń.', 'blad');
+      } finally {
+        guzik.disabled = false;
+        guzik.textContent = pierwotny;
+      }
+    });
+  });
+</script>

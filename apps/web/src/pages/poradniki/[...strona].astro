@@ -1,0 +1,62 @@
+---
+import Base from '../../layouts/Base.astro';
+import { pobierzPoradniki } from '../../lib/cms';
+
+// Spis powstaje tylko wtedy, gdy jest co najmniej jeden opublikowany poradnik —
+// pusta strona nie trafia ani do buildu, ani do sitemapy.
+export async function getStaticPaths() {
+  const poradniki = await pobierzPoradniki();
+  return poradniki.length ? [{ params: { strona: undefined }, props: { poradniki } }] : [];
+}
+const { poradniki } = Astro.props;
+const pusto = false;
+---
+<Base
+  title="Poradniki — sprzedaż, kupno i przygotowanie nieruchomości | Grupa Nieruchomości"
+  description="Praktyczne poradniki o sprzedaży i kupnie mieszkań, dokumentach, przygotowaniu nieruchomości i odbiorze od dewelopera."
+  noindex={pusto}
+>
+  <nav class="okruchy" aria-label="Ścieżka nawigacji">
+    <div class="kontener">
+      <ol><li><a href="/">Strona główna</a></li><li aria-current="page">Poradniki</li></ol>
+    </div>
+  </nav>
+
+  <section class="sekcja">
+    <div class="kontener">
+      <h1>Poradniki</h1>
+      <p class="lead">Konkretnie o tym, co zwykle budzi pytania przy sprzedaży, kupnie i przygotowaniu nieruchomości.</p>
+
+      {pusto ? (
+        <p class="pusto">Pierwsze poradniki są w przygotowaniu.</p>
+      ) : (
+        <ul class="lista">
+          {poradniki.map((p) => (
+            <li>
+              <a href={`/poradniki/${p.slug}`}>
+                <h2>{p.tytul}</h2>
+                <p>{p.lead}</p>
+                <span class="czytaj">Czytaj poradnik</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .okruchy { border-bottom: 1px solid var(--linia); font-size: 14px; }
+  .okruchy ol { display: flex; gap: 10px; padding-block: 14px; color: var(--tekst-drugi); }
+  .okruchy li + li::before { content: '/'; margin-right: 10px; color: var(--linia-mocna); }
+  h1 { font-size: clamp(2rem, 3.6vw, 3rem); }
+  .lead { margin-top: 14px; max-width: 60ch; color: var(--tekst-drugi); font-size: 1.1rem; }
+  .pusto { margin-top: 32px; color: var(--tekst-drugi); }
+  .lista { margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+  .lista a { display: flex; flex-direction: column; gap: 12px; height: 100%; padding: 28px; border: 1px solid var(--linia-mocna); border-top: 3px solid var(--zloto); text-decoration: none; }
+  .lista a:hover { border-color: var(--granat); border-top-color: var(--zloto); }
+  .lista h2 { font-size: 1.35rem; }
+  .lista p { color: var(--tekst-drugi); flex-grow: 1; }
+  .czytaj { font-weight: 600; color: var(--granat); }
+</style>

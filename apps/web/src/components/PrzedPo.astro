@@ -1,0 +1,71 @@
+---
+// Suwak „przed / po”: dwa zdjęcia tego samego wnętrza nałożone na siebie.
+// Lewa strona = PRZED, prawa = PO. Przeciąganie (mysz, dotyk), kliknięcie albo strzałki na klawiaturze
+// przesuwają granicę. Zdjęcia muszą mieć ten sam kadr i proporcje — inaczej porównanie wprowadza w błąd.
+interface Props {
+  przed: { url: string; alt: string };
+  po: { url: string; alt: string };
+  opis?: string;
+  pogladowe?: boolean;
+  proporcje?: string; // np. "3 / 2"
+}
+const { przed, po, opis, pogladowe = false, proporcje = '3 / 2' } = Astro.props;
+---
+<div class="przedpo-blok">
+  <figure class="przed-po" data-przed-po style={`--p: 50%; aspect-ratio: ${proporcje};`}>
+    <img class="przed-po__po" src={po.url} alt={po.alt} loading="lazy" decoding="async" />
+    <img class="przed-po__przed" src={przed.url} alt={przed.alt} loading="lazy" decoding="async" />
+    <span class="przed-po__etykieta przed-po__etykieta--przed" aria-hidden="true">Przed</span>
+    <span class="przed-po__etykieta przed-po__etykieta--po" aria-hidden="true">Po</span>
+    <span class="przed-po__linia" aria-hidden="true">
+      <span class="przed-po__uchwyt">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6" /></svg>
+      </span>
+    </span>
+    <input
+      class="przed-po__suwak"
+      type="range"
+      min="0"
+      max="100"
+      value="50"
+      step="1"
+      aria-label="Porównanie zdjęć przed i po: przesuń w lewo, żeby zobaczyć więcej stanu po, w prawo — stanu przed"
+      aria-valuetext="Przed 50%"
+    />
+  </figure>
+  {(opis || pogladowe) && (
+    <p class="przed-po__opis">
+      {opis && <span>{opis}</span>}
+      {pogladowe && <strong>Zdjęcia poglądowe — nie przedstawiają konkretnej realizacji.</strong>}
+    </p>
+  )}
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-przed-po]').forEach((el) => {
+    const suwak = el.querySelector<HTMLInputElement>('.przed-po__suwak');
+    if (!suwak) return;
+    const ustaw = () => {
+      el.style.setProperty('--p', `${suwak.value}%`);
+      suwak.setAttribute('aria-valuetext', `Przed ${suwak.value}%`);
+    };
+    suwak.addEventListener('input', ustaw);
+    ustaw();
+  });
+</script>
+
+<style>
+  .przedpo-blok { display: flex; flex-direction: column; gap: 14px; margin-top: clamp(24px, 3vw, 36px); }
+  .przed-po { position: relative; margin: 0; overflow: hidden; background: var(--szary-tlo); user-select: none; touch-action: pan-y; }
+  .przed-po img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; pointer-events: none; }
+  .przed-po__przed { clip-path: inset(0 calc(100% - var(--p)) 0 0); }
+  .przed-po__etykieta { position: absolute; top: 16px; padding: 4px 10px; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; background: var(--granat); color: var(--biel); pointer-events: none; }
+  .przed-po__etykieta--przed { left: 16px; }
+  .przed-po__etykieta--po { right: 16px; }
+  .przed-po__linia { position: absolute; top: 0; bottom: 0; left: var(--p); width: 2px; margin-left: -1px; background: var(--biel); pointer-events: none; }
+  .przed-po__uchwyt { position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; display: grid; place-items: center; background: var(--granat); color: var(--biel); border: 2px solid var(--biel); border-radius: 2px; }
+  .przed-po__suwak { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; -webkit-appearance: none; appearance: none; }
+  .przed-po:has(.przed-po__suwak:focus-visible) .przed-po__uchwyt { outline: 3px solid var(--zloto); outline-offset: 2px; }
+  .przed-po__opis { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--tekst-drugi); }
+  .przed-po__opis strong { font-weight: 600; }
+</style>

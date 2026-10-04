@@ -1,0 +1,101 @@
+---
+import { decyzja as decyzjaLokalna } from '../data/site';
+
+interface Props { kroki?: { nazwa: string; opis: string }[] }
+const { kroki = decyzjaLokalna } = Astro.props;
+const decyzja = kroki.length ? kroki : decyzjaLokalna;
+---
+<div class="scrolly">
+  <div class="scrolly__panel">
+    <p class="scrolly__etykieta">Jak podejmujemy decyzję</p>
+    <p class="scrolly__nr" data-scrolly-nr>01</p>
+    <h3 class="scrolly__tytul" data-scrolly-tytul>{decyzja[0].nazwa}</h3>
+    <p class="scrolly__opis" data-scrolly-opis>{decyzja[0].opis}</p>
+    <div class="scrolly__postep" aria-hidden="true">
+      <span data-scrolly-postep style="--postep: 0"></span>
+    </div>
+    <p class="scrolly__licznik"><span data-scrolly-licznik>1</span> z {decyzja.length}</p>
+  </div>
+
+  <script type="application/json" id="dane-decyzji" set:html={JSON.stringify(decyzja)} is:inline></script>
+  <ol class="scrolly__kroki">
+    {decyzja.map((k, i) => (
+      <li class="scrolly__krok" data-scrolly-krok={i}>
+        <span class="scrolly__krok-nr">{String(i + 1).padStart(2, '0')}</span>
+        <h3>{k.nazwa}</h3>
+        <p>{k.opis}</p>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .scrolly { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(24px, 6vw, 96px); align-items: start; }
+
+  .scrolly__panel { position: sticky; top: 18vh; display: flex; flex-direction: column; gap: 12px; padding: clamp(24px, 3vw, 40px); background: var(--szary-tlo); border-top: 3px solid var(--zloto); }
+  .scrolly__etykieta { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tekst-drugi); }
+  .scrolly__nr { font-family: var(--font-naglowek); font-size: clamp(3rem, 7vw, 5rem); line-height: 1; color: var(--zloto); }
+  .scrolly__tytul { font-size: clamp(1.5rem, 2.6vw, 2.1rem); }
+  .scrolly__opis { color: var(--tekst-drugi); min-height: 3.2em; }
+  .scrolly__postep { height: 2px; background: var(--linia-mocna); margin-top: 8px; }
+  .scrolly__postep span { display: block; height: 100%; width: calc(var(--postep) * 100%); background: var(--granat); }
+  .scrolly__licznik { font-size: 14px; color: var(--tekst-drugi); }
+
+  .scrolly__kroki { display: flex; flex-direction: column; }
+  .scrolly__krok { min-height: 58vh; display: flex; flex-direction: column; justify-content: center; gap: 10px; padding-block: 24px; border-top: 1px solid var(--linia); }
+  .scrolly__krok:first-child { border-top: 0; }
+  .scrolly__krok-nr { font-family: var(--font-naglowek); font-size: 1.1rem; color: var(--zloto); }
+  .scrolly__krok h3 { font-size: clamp(1.4rem, 2.4vw, 2rem); }
+  .scrolly__krok p { color: var(--tekst-drugi); max-width: 52ch; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .scrolly__krok { opacity: 0.32; transition: opacity 0.4s ease; }
+    .scrolly__krok.aktywny, .scrolly__krok.byl { opacity: 1; }
+    .scrolly__postep span { transition: width 0.4s ease; }
+  }
+
+  @media (max-width: 900px) {
+    .scrolly { grid-template-columns: 1fr; gap: 24px; }
+    .scrolly__panel { display: none; }
+    .scrolly__krok { min-height: 0; opacity: 1 !important; }
+  }
+</style>
+
+<script>
+  const decyzja = JSON.parse(document.getElementById('dane-decyzji')!.textContent!) as { nazwa: string; opis: string }[];
+
+  const kroki = Array.from(document.querySelectorAll<HTMLElement>('[data-scrolly-krok]'));
+  const nr = document.querySelector<HTMLElement>('[data-scrolly-nr]');
+  const tytul = document.querySelector<HTMLElement>('[data-scrolly-tytul]');
+  const opis = document.querySelector<HTMLElement>('[data-scrolly-opis]');
+  const postep = document.querySelector<HTMLElement>('[data-scrolly-postep]');
+  const licznik = document.querySelector<HTMLElement>('[data-scrolly-licznik]');
+
+  if (kroki.length && nr && tytul && opis) {
+    const pokaz = (i: number) => {
+      const k = decyzja[i];
+      nr.textContent = String(i + 1).padStart(2, '0');
+      tytul.textContent = k.nazwa;
+      opis.textContent = k.opis;
+      if (licznik) licznik.textContent = String(i + 1);
+      if (postep) postep.style.setProperty('--postep', String((i + 1) / decyzja.length));
+      kroki.forEach((el, j) => {
+        el.classList.toggle('aktywny', j === i);
+        el.classList.toggle('byl', j < i);
+      });
+    };
+
+    const obserwator = new IntersectionObserver(
+      (wpisy) => {
+        const widoczne = wpisy.filter((w) => w.isIntersecting);
+        if (!widoczne.length) return;
+        const najblizszy = widoczne.reduce((a, b) => (a.intersectionRatio >= b.intersectionRatio ? a : b));
+        pokaz(Number((najblizszy.target as HTMLElement).dataset.scrollyKrok));
+      },
+      { rootMargin: '-45% 0px -45% 0px', threshold: [0, 0.5, 1] },
+    );
+
+    kroki.forEach((k) => obserwator.observe(k));
+    pokaz(0);
+  }
+</script>

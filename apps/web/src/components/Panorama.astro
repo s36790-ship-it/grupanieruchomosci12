@@ -1,0 +1,40 @@
+---
+// Zapas dla przeglądarek bez animacji sterowanych przewijaniem (Firefox w wersji stabilnej).
+// Uruchamia się tylko wtedy, gdy CSS nie daje rady i gdy użytkownik nie prosił o ograniczenie ruchu.
+---
+<script>
+  const brakWsparcia = !CSS.supports('animation-timeline: view()');
+  const ograniczRuch = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (brakWsparcia && !ograniczRuch) {
+    const zdjecia = Array.from(document.querySelectorAll<HTMLImageElement>('.panorama--hero > img, .panorama--pas > img'));
+    const jestPas = (img: HTMLImageElement) => img.parentElement!.classList.contains('panorama--pas');
+
+    zdjecia.forEach((img) => {
+      img.style.width = jestPas(img) ? '116%' : '128%';
+      img.style.maxWidth = 'none';
+    });
+
+    const pasek = document.querySelector<HTMLElement>('.postep-strony span');
+    let zaplanowane = false;
+    const przelicz = () => {
+      zaplanowane = false;
+      const wysokosc = window.innerHeight;
+      if (pasek) {
+        const doPrzewiniecia = document.documentElement.scrollHeight - wysokosc;
+        pasek.style.width = (doPrzewiniecia > 0 ? (scrollY / doPrzewiniecia) * 100 : 0) + '%';
+      }
+      zdjecia.forEach((img) => {
+        const r = img.parentElement!.getBoundingClientRect();
+        const postep = Math.min(1, Math.max(0, (wysokosc - r.top) / (wysokosc + r.height)));
+        img.style.translate = (jestPas(img) ? -14 + 14 * postep : -22 * postep) + '% 0';
+      });
+    };
+    const zaplanuj = () => {
+      if (!zaplanowane) { zaplanowane = true; requestAnimationFrame(przelicz); }
+    };
+    addEventListener('scroll', zaplanuj, { passive: true });
+    addEventListener('resize', zaplanuj, { passive: true });
+    przelicz();
+  }
+</script>

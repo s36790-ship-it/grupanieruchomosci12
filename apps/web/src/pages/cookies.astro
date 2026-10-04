@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+import { firma } from '../data/site';
+---
+<Base
+  title="Pliki cookies — Grupa Nieruchomości"
+  description="Jakich plików cookies używamy na stronie grupa-nieruchomosci.pl, do czego służą i jak zarządzać zgodą."
+>
+  <section class="sekcja">
+    <div class="kontener dokument">
+      <h1>Pliki cookies</h1>
+
+      <h2>Czym są pliki cookies</h2>
+      <p>
+        Cookies to niewielkie pliki tekstowe zapisywane w Twojej przeglądarce przez odwiedzane strony. Pozwalają
+        m.in. zapamiętać ustawienia albo zliczyć odwiedziny.
+      </p>
+
+      <h2>Jak ich używamy</h2>
+      <p>
+        Domyślnie nie uruchamiamy żadnych plików innych niż niezbędne do działania strony. Pliki statystyczne
+        włączają się wyłącznie po Twojej zgodzie wyrażonej w banerze. Brak zgody nie ogranicza dostępu do żadnej
+        treści serwisu.
+      </p>
+
+      <h2>Rodzaje plików</h2>
+      <table class="tabela">
+        <thead>
+          <tr><th>Rodzaj</th><th>Do czego służy</th><th>Podstawa</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Niezbędne</td>
+            <td>Zapamiętanie Twojej decyzji w sprawie cookies oraz poprawne działanie formularza kontaktowego, w tym zabezpieczenie przed nadużyciami.</td>
+            <td>Uzasadniony interes — działanie strony</td>
+          </tr>
+          <tr>
+            <td>Statystyczne</td>
+            <td>Zliczanie odwiedzin i sprawdzanie, które treści są przydatne. Uruchamiane tylko po zgodzie.</td>
+            <td>Zgoda</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="dokument__uwaga">
+        Konkretne nazwy plików i czasy ich przechowywania uzupełnimy po wyborze narzędzia analitycznego
+        i przekazaniu identyfikatorów.
+      </p>
+
+      <h2>Jak zmienić zgodę</h2>
+      <p>
+        W każdej chwili możesz zmienić decyzję: <a href="#" data-otworz-zgody>otwórz ustawienia cookies</a>.
+        Możesz też usunąć zapisane pliki w ustawieniach swojej przeglądarki.
+      </p>
+
+      <h2>Kontakt</h2>
+      <p>
+        {firma.nazwaPrawna}, {firma.siedziba.ulica}, {firma.siedziba.kod} {firma.siedziba.miasto}.
+        E-mail: <a href={`mailto:${firma.email}`}>{firma.email}</a>, telefon:
+        <a href={firma.telefonHref}>{firma.telefon}</a>.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .dokument { max-width: 72ch; display: flex; flex-direction: column; gap: 18px; }
+  .dokument h1 { font-size: clamp(2rem, 3.6vw, 3rem); }
+  .dokument h2 { font-size: clamp(1.3rem, 2vw, 1.6rem); margin-top: 18px; }
+  .dokument__uwaga { color: var(--tekst-drugi); font-size: 15px; }
+  .tabela { border-collapse: collapse; width: 100%; font-size: 0.97rem; }
+  .tabela th, .tabela td { border-bottom: 1px solid var(--linia-mocna); padding: 12px; text-align: left; vertical-align: top; }
+  .tabela th { font-weight: 600; background: var(--szary-tlo); }
+</style>

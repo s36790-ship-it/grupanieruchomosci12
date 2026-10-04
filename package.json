@@ -1,0 +1,21 @@
+{
+  "name": "grupanieruchomosci12",
+  "private": true,
+  "scripts": {
+    "konfiguruj": "node scripts/konfiguruj.mjs",
+    "dev": "concurrently -n cms,strona,mostek -c magenta,cyan,green \"npm:dev:cms\" \"npm:dev:web\" \"npm:mostek\"",
+    "dev:cms": "npm run dev --prefix apps/cms",
+    "dev:web": "npm run dev --prefix apps/web",
+    "mostek": "node apps/web/scripts/mostek.mjs",
+    "seed": "npm run seed --prefix apps/cms",
+    "build": "npm run build --prefix apps/web",
+    "setup": "npm install --prefix apps/cms && npm install --prefix apps/web",
+    "sprawdz": "node scripts/sprawdz.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=22.19"
+  }
+}

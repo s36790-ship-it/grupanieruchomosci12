@@ -1,0 +1,38 @@
+---
+import Base from '../layouts/Base.astro';
+import Formularz from '../components/Formularz.astro';
+import { firma } from '../data/site';
+---
+<Base
+  title="Kontakt — Grupa Nieruchomości Białystok"
+  description="Napisz lub zadzwoń: +48 608 642 999, kontakt@grupa-nieruchomosci.pl. Biuro przy ul. Pięknej 5 w Białymstoku. Wycena nieruchomości jest bezpłatna."
+  image="/images/kontakt.jpg"
+>
+  <section class="sekcja">
+    <div class="kontener kontakt">
+      <div class="kontakt__tresc">
+        <h1>Kontakt</h1>
+        <p>Opisz krótko sytuację albo od razu zaproponuj termin spotkania. Oddzwonimy lub odpiszemy — tak, jak wolisz.</p>
+        <dl>
+          <div><dt>Telefon</dt><dd><a class="duzy" href={firma.telefonHref}>{firma.telefon}</a></dd></div>
+          <div><dt>E-mail</dt><dd><a href={`mailto:${firma.email}`}>{firma.email}</a></dd></div>
+          <div><dt>Biuro</dt><dd>{firma.biuro.ulica}<br />{firma.biuro.kod} {firma.biuro.miasto}</dd></div>
+          <div><dt>Obszar działania</dt><dd>{firma.obszar}</dd></div>
+          <div><dt>Dane rejestrowe</dt><dd>{firma.nazwaPrawna}<br />{firma.siedziba.ulica}, {firma.siedziba.kod} {firma.siedziba.miasto}<br />NIP {firma.nip}, KRS {firma.krs}</dd></div>
+        </dl>
+      </div>
+      <Formularz usluga="Kontakt" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .kontakt { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 540px); gap: clamp(32px, 6vw, 88px); align-items: start; }
+  .kontakt__tresc { display: flex; flex-direction: column; gap: 24px; }
+  .kontakt__tresc h1 { font-size: clamp(2.2rem, 4vw, 3.2rem); }
+  dl { display: flex; flex-direction: column; gap: 18px; margin: 0; }
+  dt { font-size: 14px; color: var(--tekst-drugi); }
+  dd { margin: 0; }
+  .duzy { font-family: var(--font-naglowek); font-size: 1.6rem; text-decoration: none; }
+  @media (max-width: 900px) { .kontakt { grid-template-columns: 1fr; } }
+</style>

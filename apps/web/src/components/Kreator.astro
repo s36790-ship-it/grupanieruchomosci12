@@ -1,0 +1,230 @@
+---
+// Kreator „Z czym przychodzisz?” — trzy krótkie pytania prowadzą do właściwej usługi
+// i wypełniają formularz kontaktowy na tej samej stronie (select „temat” + treść wiadomości).
+// Bez JS kreator pozostaje ukryty — lista ścieżek nad nim działa niezależnie.
+interface Props { tytul?: string; lead?: string }
+const {
+  tytul = 'Nie wiesz, od czego zacząć?',
+  lead = 'Trzy pytania, pół minuty. Podpowiemy, która usługa pasuje, i przygotujemy wiadomość do nas — wyślesz ją, kiedy zechcesz.',
+} = Astro.props;
+
+const pytania = [
+  {
+    id: 'cel',
+    pytanie: 'Co chcesz zrobić?',
+    odpowiedzi: [
+      ['sprzedaz', 'Sprzedać nieruchomość'],
+      ['kupno', 'Kupić nieruchomość'],
+      ['inwestycja', 'Zainwestować'],
+      ['pod-klucz', 'Mieć mieszkanie pod klucz'],
+      ['wartosc', 'Przygotować lokal do sprzedaży lub wynajmu'],
+    ],
+  },
+  {
+    id: 'rodzaj',
+    pytanie: 'Jakiej nieruchomości to dotyczy?',
+    odpowiedzi: [
+      ['mieszkanie', 'Mieszkanie'],
+      ['dom', 'Dom'],
+      ['dzialka', 'Działka'],
+      ['lokal', 'Lokal użytkowy'],
+      ['nie-wiem', 'Jeszcze nie wiem'],
+    ],
+  },
+  {
+    id: 'termin',
+    pytanie: 'Na kiedy?',
+    odpowiedzi: [
+      ['pilne', 'Jak najszybciej'],
+      ['3-miesiace', 'W ciągu 3 miesięcy'],
+      ['rok', 'W ciągu roku'],
+      ['bez-pospiechu', 'Bez pośpiechu, na razie się rozglądam'],
+    ],
+  },
+];
+---
+<section class="sekcja sekcja--szara" aria-labelledby="kreator-tytul" data-kreator-sekcja hidden>
+  <div class="kontener kreator">
+    <div class="kreator__wstep">
+      <h2 id="kreator-tytul">{tytul}</h2>
+      <p>{lead}</p>
+    </div>
+
+    <div class="kreator__panel" data-kreator>
+      <div class="kreator__gora" data-kreator-gora>
+        <p class="kreator__licznik">Pytanie <span data-kreator-nr>1</span> z <span data-kreator-z>{pytania.length}</span></p>
+        <div class="kreator__postep" aria-hidden="true"><span data-kreator-postep></span></div>
+      </div>
+
+      {pytania.map((p, i) => (
+        <fieldset class="kreator__krok" data-kreator-krok={p.id} hidden={i !== 0}>
+          <legend>{p.pytanie}</legend>
+          <div class="kreator__odpowiedzi">
+            {p.odpowiedzi.map(([wartosc, etykieta]) => (
+              <label class="kreator__odpowiedz">
+                <input type="radio" name={`kreator-${p.id}`} value={wartosc} data-etykieta={etykieta} />
+                <span>{etykieta}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ))}
+
+      <div class="kreator__wynik" data-kreator-wynik hidden tabindex="-1">
+        <p class="kreator__nadtytul">Proponujemy</p>
+        <h3 data-kreator-usluga></h3>
+        <p class="kreator__opis" data-kreator-opis></p>
+        <p class="kreator__podsumowanie" data-kreator-podsumowanie></p>
+        <div class="kreator__akcje">
+          <button type="button" class="przycisk" data-kreator-formularz>Przejdź do formularza</button>
+          <a class="link-mocny" href="/" data-kreator-link>
+            <span data-kreator-link-tekst>Zobacz usługę</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B89A61" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="kreator__nawigacja">
+        <button type="button" class="kreator__wstecz" data-kreator-wstecz hidden>← Wróć</button>
+        <button type="button" class="kreator__wstecz" data-kreator-od-nowa hidden>Zacznij od nowa</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  type Usluga = { nazwa: string; href: string; temat: string; opis: string };
+  const USLUGI: Record<string, Usluga> = {
+    sprzedaz: { nazwa: 'Sprzedaż nieruchomości', href: '/sprzedaz-nieruchomosci', temat: 'Sprzedaż nieruchomości', opis: 'Zaczynamy od bezpłatnej wyceny. Potem strategia i cena ofertowa, przygotowanie nieruchomości i sprzedaż aż do finalizacji.' },
+    szybka: { nazwa: 'Szybka sprzedaż', href: '/szybka-sprzedaz', temat: 'Sprzedaż nieruchomości', opis: 'Gdy termin jest ważniejszy niż maksymalna cena. Pokażemy możliwe scenariusze i ich konsekwencje, zanim cokolwiek zdecydujesz.' },
+    kupno: { nazwa: 'Kupno nieruchomości', href: '/kupno-nieruchomosci', temat: 'Kupno nieruchomości', opis: 'Reprezentujemy Ciebie, nie sprzedającego: selekcja ofert, analiza, wsparcie w weryfikacji i negocjacje.' },
+    inwestycja: { nazwa: 'Inwestycje', href: '/inwestycje', temat: 'Inwestycja', opis: 'Szukamy nieruchomości dopasowanej do Twojego kapitału, celu i horyzontu, a potem przygotowujemy ją do sprzedaży lub wynajmu.' },
+    'pod-klucz': { nazwa: 'Mieszkanie pod klucz', href: '/mieszkanie-pod-klucz', temat: 'Mieszkanie pod klucz', opis: 'Znajdziemy. Zaprojektujemy. Wykończymy. Jeden proces od wyszukania lokalu do przekazania kluczy.' },
+    wartosc: { nazwa: 'Jak zwiększamy wartość', href: '/zwiekszamy-wartosc', temat: 'Inny temat', opis: 'Remont nie zawsze się opłaca. Zaczynamy od Twojego celu i sprawdzamy, które działania mają sens przy danym budżecie i terminie.' },
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-kreator]').forEach((kreator) => {
+    const sekcja = kreator.closest<HTMLElement>('[data-kreator-sekcja]');
+    if (sekcja) sekcja.hidden = false;
+
+    const kroki = Array.from(kreator.querySelectorAll<HTMLFieldSetElement>('[data-kreator-krok]'));
+    const wynik = kreator.querySelector<HTMLElement>('[data-kreator-wynik]')!;
+    const gora = kreator.querySelector<HTMLElement>('[data-kreator-gora]')!;
+    const nr = kreator.querySelector<HTMLElement>('[data-kreator-nr]')!;
+    const z = kreator.querySelector<HTMLElement>('[data-kreator-z]')!;
+    const postep = kreator.querySelector<HTMLElement>('[data-kreator-postep]')!;
+    const wstecz = kreator.querySelector<HTMLButtonElement>('[data-kreator-wstecz]')!;
+    const odNowa = kreator.querySelector<HTMLButtonElement>('[data-kreator-od-nowa]')!;
+    const odpowiedzi: Record<string, { wartosc: string; etykieta: string }> = {};
+    let historia: number[] = [];
+    let wybrana: Usluga | null = null;
+
+    // Mieszkanie pod klucz zawsze dotyczy mieszkania — pomijamy pytanie o rodzaj.
+    const aktywneKroki = () => kroki.filter((k) => !(k.dataset.kreatorKrok === 'rodzaj' && odpowiedzi.cel?.wartosc === 'pod-klucz'));
+
+    const pokazKrok = (i: number, fokus = true) => {
+      const lista = aktywneKroki();
+      kroki.forEach((k) => (k.hidden = k !== lista[i]));
+      wynik.hidden = true;
+      gora.hidden = false;
+      nr.textContent = String(i + 1);
+      z.textContent = String(lista.length);
+      postep.style.setProperty('--postep', String(i / lista.length));
+      wstecz.hidden = historia.length === 0;
+      odNowa.hidden = true;
+      if (fokus) lista[i].querySelector<HTMLInputElement>('input:checked, input')?.focus();
+    };
+
+    const pokazWynik = () => {
+      const cel = odpowiedzi.cel.wartosc;
+      const klucz = cel === 'sprzedaz' && odpowiedzi.termin?.wartosc === 'pilne' ? 'szybka' : cel;
+      wybrana = USLUGI[klucz];
+      kroki.forEach((k) => (k.hidden = true));
+      gora.hidden = true;
+      wynik.hidden = false;
+      wynik.querySelector('[data-kreator-usluga]')!.textContent = wybrana.nazwa;
+      wynik.querySelector('[data-kreator-opis]')!.textContent = wybrana.opis;
+      wynik.querySelector('[data-kreator-podsumowanie]')!.textContent = Object.values(odpowiedzi).map((o) => o.etykieta).join(' · ');
+      const link = wynik.querySelector<HTMLAnchorElement>('[data-kreator-link]')!;
+      link.href = wybrana.href;
+      link.querySelector('[data-kreator-link-tekst]')!.textContent = `Zobacz: ${wybrana.nazwa}`;
+      wstecz.hidden = false;
+      odNowa.hidden = false;
+      wynik.focus();
+      kreator.dispatchEvent(new CustomEvent('gn:kreator', { bubbles: true, detail: { usluga: wybrana, odpowiedzi } }));
+    };
+
+    kroki.forEach((krok) => {
+      krok.addEventListener('change', (e) => {
+        const input = e.target as HTMLInputElement;
+        odpowiedzi[krok.dataset.kreatorKrok!] = { wartosc: input.value, etykieta: input.dataset.etykieta || input.value };
+        if (krok.dataset.kreatorKrok === 'cel' && input.value === 'pod-klucz') delete odpowiedzi.rodzaj;
+        const lista = aktywneKroki();
+        const i = lista.indexOf(krok);
+        historia.push(i);
+        // Krótka pauza, żeby było widać zaznaczenie.
+        setTimeout(() => (i + 1 < lista.length ? pokazKrok(i + 1) : pokazWynik()), 180);
+      });
+    });
+
+    wstecz.addEventListener('click', () => {
+      const poprzedni = historia.pop();
+      if (poprzedni !== undefined) pokazKrok(poprzedni);
+    });
+
+    odNowa.addEventListener('click', () => {
+      Object.keys(odpowiedzi).forEach((k) => delete odpowiedzi[k]);
+      kreator.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((r) => (r.checked = false));
+      historia = [];
+      pokazKrok(0);
+    });
+
+    kreator.querySelector('[data-kreator-formularz]')!.addEventListener('click', () => {
+      const formularz = document.querySelector<HTMLFormElement>('form.formularz');
+      if (!formularz || !wybrana) { window.location.href = wybrana ? `${wybrana.href}#formularz` : '/kontakt'; return; }
+      const temat = formularz.querySelector<HTMLSelectElement>('select[name="temat"]');
+      if (temat) temat.value = wybrana.temat;
+      const wiadomosc = formularz.querySelector<HTMLTextAreaElement>('textarea[name="wiadomosc"]');
+      const tekst = `Z kreatora: ${Object.values(odpowiedzi).map((o) => o.etykieta).join(' · ')}.`;
+      if (wiadomosc && (!wiadomosc.value.trim() || wiadomosc.value.startsWith('Z kreatora:'))) wiadomosc.value = tekst;
+      formularz.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      formularz.querySelector<HTMLInputElement>('input[name="kontakt"]')?.focus({ preventScroll: true });
+    });
+
+    pokazKrok(0, false);
+  });
+</script>
+
+<style>
+  .kreator { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(28px, 6vw, 96px); align-items: start; }
+  .kreator__wstep { display: flex; flex-direction: column; gap: 16px; }
+  .kreator__wstep p { color: var(--tekst-drugi); max-width: 46ch; }
+
+  .kreator__panel { background: var(--biel); border-top: 3px solid var(--zloto); padding: clamp(24px, 3.5vw, 40px); display: flex; flex-direction: column; gap: 20px; min-height: 380px; }
+  .kreator__gora { display: flex; flex-direction: column; gap: 10px; }
+  .kreator__licznik { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tekst-drugi); }
+  .kreator__postep { height: 2px; background: var(--linia-mocna); }
+  .kreator__postep span { display: block; height: 100%; width: calc(var(--postep, 0) * 100%); background: var(--granat); }
+
+  .kreator__krok { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .kreator__krok legend { font-family: var(--font-naglowek); font-size: clamp(1.4rem, 2.4vw, 1.9rem); color: var(--granat); padding: 0 0 18px; line-height: 1.15; }
+  .kreator__odpowiedzi { display: flex; flex-direction: column; gap: 10px; }
+  .kreator__odpowiedz { display: flex; align-items: center; gap: 12px; min-height: 54px; padding: 0 16px; border: 1px solid var(--linia-mocna); border-radius: 2px; cursor: pointer; background: var(--biel); }
+  .kreator__odpowiedz:hover { border-color: var(--granat); }
+  .kreator__odpowiedz input { width: 18px; height: 18px; accent-color: var(--granat); flex: 0 0 auto; margin: 0; }
+  .kreator__odpowiedz:has(input:checked) { border-color: var(--granat); box-shadow: inset 0 0 0 1px var(--granat); }
+  .kreator__odpowiedz:has(input:focus-visible) { outline: 3px solid var(--zloto); outline-offset: 2px; }
+
+  .kreator__wynik { display: flex; flex-direction: column; gap: 12px; outline: none; }
+  .kreator__nadtytul { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tekst-drugi); }
+  .kreator__wynik h3 { font-size: clamp(1.6rem, 3vw, 2.3rem); }
+  .kreator__opis { color: var(--tekst-drugi); max-width: 52ch; }
+  .kreator__podsumowanie { font-size: 14px; color: var(--tekst-drugi); border-left: 2px solid var(--zloto); padding-left: 12px; }
+  .kreator__akcje { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; margin-top: 8px; }
+
+  .kreator__nawigacja { display: flex; justify-content: space-between; margin-top: auto; }
+  .kreator__wstecz { font: inherit; font-size: 15px; font-weight: 500; color: var(--granat); background: none; border: 0; padding: 8px 0; cursor: pointer; text-decoration: underline; text-underline-offset: 5px; }
+  .kreator__wstecz:hover { color: var(--granat-ciemny); }
+
+  @media (max-width: 900px) { .kreator { grid-template-columns: 1fr; } .kreator__panel { min-height: 0; } }
+</style>

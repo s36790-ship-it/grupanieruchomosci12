@@ -1,0 +1,138 @@
+---
+import Base from '../../layouts/Base.astro';
+import Formularz from '../../components/Formularz.astro';
+import { pobierzPoradniki, pobierzUslugi, pobierzLokalizacje } from '../../lib/cms';
+
+export async function getStaticPaths() {
+  const [poradniki, uslugi, lokalizacje] = await Promise.all([pobierzPoradniki(), pobierzUslugi(), pobierzLokalizacje()]);
+  return poradniki.map((p) => ({
+    params: { slug: p.slug },
+    props: {
+      p,
+      uslugi: uslugi.filter((u) => p.uslugi.includes(u.slug)),
+      // Poradnik linkuje do stron lokalnych tych samych usług — tu zaczyna się ścieżka do kontaktu.
+      lokalne: lokalizacje.filter((l) => p.uslugi.includes(l.uslugaSlug)).slice(0, 6),
+      inne: poradniki.filter((x) => x.slug !== p.slug).slice(0, 3),
+    },
+  }));
+}
+
+const { p, uslugi, lokalne, inne } = Astro.props;
+const adres = new URL(Astro.url.pathname, Astro.site).href;
+const dane = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: p.tytul,
+    description: p.metaDescription,
+    mainEntityOfPage: adres,
+    dateModified: p.zaktualizowano,
+    ...(p.data ? { datePublished: p.data } : {}),
+    publisher: { '@type': 'Organization', name: 'Grupa Nieruchomości', url: Astro.site?.href },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Strona główna', item: Astro.site?.href },
+      { '@type': 'ListItem', position: 2, name: 'Poradniki', item: new URL('/poradniki', Astro.site).href },
+      { '@type': 'ListItem', position: 3, name: p.tytul, item: adres },
+    ],
+  },
+];
+---
+<Base title={p.metaTitle} description={p.metaDescription} faq={p.faq} daneStrukturalne={dane}>
+  <nav class="okruchy" aria-label="Ścieżka nawigacji">
+    <div class="kontener">
+      <ol><li><a href="/">Strona główna</a></li><li><a href="/poradniki">Poradniki</a></li><li aria-current="page">{p.tytul}</li></ol>
+    </div>
+  </nav>
+
+  <article class="sekcja">
+    <div class="kontener artykul">
+      <h1>{p.tytul}</h1>
+      <p class="artykul__lead">{p.lead}</p>
+
+      {p.sekcje.map((s) => (
+        <section>
+          <h2>{s.naglowek}</h2>
+          {s.akapity.map((a) => <p>{a}</p>)}
+          {s.punkty.length > 0 && <ul>{s.punkty.map((pt) => <li>{pt}</li>)}</ul>}
+        </section>
+      ))}
+
+      {p.faq.length > 0 && (
+        <section class="artykul__faq">
+          <h2>Pytania i odpowiedzi</h2>
+          {p.faq.map((f) => (
+            <details><summary>{f.pytanie}</summary><p>{f.odpowiedz}</p></details>
+          ))}
+        </section>
+      )}
+    </div>
+  </article>
+
+  {(uslugi.length > 0 || lokalne.length > 0) && (
+    <section class="sekcja sekcja--szara">
+      <div class="kontener">
+        <h2>Jak możemy pomóc</h2>
+        <ul class="powiazania">
+          {uslugi.map((u) => (
+            <li><a href={`/${u.slug}`}><span class="powiazania__tytul">{u.nazwa}</span><span class="powiazania__opis">{u.lead}</span></a></li>
+          ))}
+          {lokalne.map((l) => (
+            <li><a href={`/${l.slug}`}><span class="powiazania__tytul">{l.tytul}</span><span class="powiazania__opis">{l.miejscowosc}</span></a></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  {inne.length > 0 && (
+    <section class="sekcja">
+      <div class="kontener">
+        <h2>Inne poradniki</h2>
+        <ul class="powiazania">
+          {inne.map((x) => (
+            <li><a href={`/poradniki/${x.slug}`}><span class="powiazania__tytul">{x.tytul}</span><span class="powiazania__opis">{x.lead}</span></a></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <section class="sekcja sekcja--szara" id="formularz">
+    <div class="kontener formularz-sekcja">
+      <div>
+        <h2>Masz pytanie o swoją sytuację?</h2>
+        <p>Opisz ją krótko — odpowiemy konkretnie. Wycena nieruchomości jest bezpłatna.</p>
+      </div>
+      <Formularz usluga={`Poradnik: ${p.tytul}`} />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .okruchy { border-bottom: 1px solid var(--linia); font-size: 14px; }
+  .okruchy ol { display: flex; gap: 10px; padding-block: 14px; color: var(--tekst-drugi); flex-wrap: wrap; }
+  .okruchy li + li::before { content: '/'; margin-right: 10px; color: var(--linia-mocna); }
+  .artykul { max-width: 72ch; display: flex; flex-direction: column; gap: 28px; }
+  .artykul h1 { font-size: clamp(2rem, 3.6vw, 3rem); }
+  .artykul__lead { font-size: 1.15rem; color: var(--tekst-drugi); }
+  .artykul section { display: flex; flex-direction: column; gap: 14px; }
+  .artykul h2 { font-size: clamp(1.35rem, 2.2vw, 1.75rem); }
+  .artykul ul { display: flex; flex-direction: column; gap: 10px; }
+  .artykul li { padding-left: 26px; position: relative; }
+  .artykul li::before { content: ''; position: absolute; left: 0; top: 13px; width: 12px; height: 1px; background: var(--zloto); }
+  .artykul__faq details { border-top: 1px solid var(--linia-mocna); }
+  .artykul__faq summary { cursor: pointer; padding-block: 16px; font-weight: 600; }
+  .artykul__faq details p { padding-bottom: 16px; color: var(--tekst-drugi); }
+  .powiazania { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .powiazania a { display: flex; flex-direction: column; gap: 8px; padding: 22px; border: 1px solid var(--linia-mocna); text-decoration: none; height: 100%; background: var(--biel); }
+  .powiazania a:hover { border-color: var(--granat); }
+  .powiazania__tytul { font-family: var(--font-naglowek); font-size: 1.15rem; color: var(--granat); }
+  .powiazania__opis { color: var(--tekst-drugi); font-size: 0.95rem; }
+  .formularz-sekcja { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 540px); gap: clamp(28px, 5vw, 80px); align-items: start; }
+  .formularz-sekcja > div { display: flex; flex-direction: column; gap: 14px; }
+  @media (max-width: 900px) { .formularz-sekcja { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,270 @@
+---
+import Base from '../layouts/Base.astro';
+import Formularz from '../components/Formularz.astro';
+import Partnerstwo from '../components/Partnerstwo.astro';
+import Scrolly from '../components/Scrolly.astro';
+import Kreator from '../components/Kreator.astro';
+import { pobierzStroneGlowna, pobierzUstawienia } from '../lib/cms';
+
+const strona = await pobierzStroneGlowna();
+const firma = await pobierzUstawienia();
+const { sciezki, dzialania, model } = strona;
+---
+<Base
+  title="Grupa Nieruchomości — sprzedaż, kupno i mieszkania pod klucz w Białymstoku"
+  description="Pomagamy sprzedać, kupić i przygotować nieruchomość w Białymstoku i województwie podlaskim. Bezpłatna wycena, home staging, remonty i projekty inwestycyjne."
+>
+  <section class="hero">
+    <div class="hero__tresc">
+      <h1>{strona.haslo}</h1>
+      <p class="hero__lead">
+{strona.lead}
+      </p>
+      <div class="hero__akcje">
+        <a class="przycisk" href="/kontakt">{strona.ctaGlowne}</a>
+        <a class="link-mocny" href="#wartosc">Jak zwiększamy wartość</a>
+      </div>
+      <Partnerstwo />
+    </div>
+    <div class="hero__foto panorama panorama--hero">
+    <img
+      src="/images/hero-glowna.jpg"
+      width="1536"
+      height="1024"
+      alt="Jasny salon z dużym oknem, drewnianą podłogą i widokiem na miasto"
+      fetchpriority="high"
+      decoding="async"
+    />
+    </div>
+  </section>
+
+  <section class="sekcja" aria-labelledby="sciezki">
+    <div class="kontener">
+      <h2 id="sciezki" class="odsloniecie">{strona.sciezkiTytul}</h2>
+      <ul class="sciezki">
+        {sciezki.map((s) => (
+          <li class="sciezka">
+            <h3 class="sciezka__tytul">{s.tytul}</h3>
+            <p class="sciezka__opis">{s.opis}</p>
+            <a class="link-mocny" href={s.href}>
+              {s.link}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B89A61" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <Kreator />
+
+  <section class="sekcja" id="wartosc" aria-labelledby="wartosc-tytul">
+    <div class="kontener wartosc wartosc--jedna">
+      <div>
+        <h2 id="wartosc-tytul" class="odsloniecie">{strona.wartoscTytul}</h2>
+        <p class="wartosc__lead">
+{strona.wartoscLead}
+        </p>
+        <ul class="dzialania">
+          {dzialania.map((d) => (
+            <li>
+              <strong>{d.nazwa}</strong>
+              <span>{d.opis}</span>
+            </li>
+          ))}
+        </ul>
+        <a class="link-mocny" href="/zwiekszamy-wartosc">Jak dobieramy działania</a>
+      </div>
+  </section>
+
+  <section class="sekcja sekcja--szara" aria-labelledby="decyzja-tytul">
+    <div class="kontener">
+      <h2 id="decyzja-tytul" class="odsloniecie">{strona.decyzjaTytul}</h2>
+      <p class="decyzja__lead">{strona.decyzjaLead}</p>
+      <Scrolly kroki={strona.decyzja} />
+    </div>
+  </section>
+
+  <section class="sekcja sekcja--granat" aria-labelledby="model-tytul">
+    <div class="kontener">
+      <div class="model__gora">
+        <div>
+          <h2 id="model-tytul">{strona.modelTytul}</h2>
+          <p class="model__lead">{strona.modelLead}</p>
+        </div>
+        <div class="model__zakladki" role="tablist" aria-label="Wybór usługi">
+          {model.map((m, i) => (
+            <button
+              type="button"
+              role="tab"
+              id={`zakladka-${m.id}`}
+              aria-controls={`panel-${m.id}`}
+              aria-selected={i === 0 ? 'true' : 'false'}
+              class:list={['model__zakladka', { 'model__zakladka--aktywna': i === 0 }]}
+            >{m.etykieta}</button>
+          ))}
+        </div>
+      </div>
+
+      {model.map((m, i) => (
+        <ol
+          class="model__etapy"
+          id={`panel-${m.id}`}
+          role="tabpanel"
+          aria-labelledby={`zakladka-${m.id}`}
+          hidden={i !== 0}
+        >
+          {m.etapy.map(([nazwa, opis], j) => (
+            <li>
+              <span class="model__nr">{j + 1}</span>
+              <h3>{nazwa}</h3>
+              <p>{opis}</p>
+            </li>
+          ))}
+        </ol>
+      ))}
+      <p class="model__nota">{strona.modelNota}</p>
+    </div>
+  </section>
+
+  <section class="sekcja" aria-labelledby="pracujemy-tytul">
+    <div class="kontener">
+      <div class="pas panorama panorama--pas">
+      <img
+        src="/images/glowna-szeroki.jpg"
+        width="2048"
+        height="768"
+        alt="Przedpokój z lustrem i komodą, w głębi salon z jadalnią i wyjściem na balkon"
+        loading="lazy"
+        decoding="async"
+      />
+      </div>
+      <div class="pracujemy">
+        <h2 id="pracujemy-tytul" class="odsloniecie">{strona.pracujemyTytul}</h2>
+        <div class="pracujemy__kolumny">
+          {strona.zasady.map((z: { tytul: string; opis: string }) => (
+            <div>
+              <h3>{z.tytul}</h3>
+              <p>{z.opis}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sekcja sekcja--szara pas-wyceny" aria-labelledby="wycena-tytul">
+    <div class="kontener pas-wyceny__wnetrze">
+      <div>
+        <h2 id="wycena-tytul" class="pas-wyceny__haslo odsloniecie">{strona.wycenaHaslo}</h2>
+        <p>{strona.wycenaOpis}</p>
+      </div>
+      <div class="pas-wyceny__akcje">
+        <a class="przycisk" href="/kontakt">Napisz do nas</a>
+        <a class="przycisk przycisk--obrys" href={firma.telefonHref}>{firma.telefon}</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sekcja" id="kontakt" aria-labelledby="kontakt-tytul">
+    <div class="kontener kontakt">
+      <div class="kontakt__tresc">
+        <h2 id="kontakt-tytul">{strona.kontaktTytul}</h2>
+        <p>{strona.kontaktOpis}</p>
+        <dl class="kontakt__dane">
+          <div><dt>Telefon</dt><dd><a class="kontakt__telefon" href={firma.telefonHref}>{firma.telefon}</a></dd></div>
+          <div><dt>E-mail</dt><dd><a href={`mailto:${firma.email}`}>{firma.email}</a></dd></div>
+          <div><dt>Biuro</dt><dd>{firma.biuro.ulica}<br />{firma.biuro.kod} {firma.biuro.miasto}</dd></div>
+          <div><dt>Obszar działania</dt><dd>{firma.obszar}</dd></div>
+        </dl>
+        <p class="kontakt__szybka">Zależy Ci na czasie? <a href="/szybka-sprzedaz">Sprawdź możliwe scenariusze szybkiej sprzedaży</a></p>
+      </div>
+      <Formularz usluga="Strona główna" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { display: grid; grid-template-columns: minmax(0, 560px) minmax(0, 1fr); gap: clamp(32px, 5vw, 72px); align-items: center; padding-left: var(--margines); }
+  .hero__tresc { display: flex; flex-direction: column; gap: 28px; padding-block: clamp(40px, 6vw, 96px); max-width: 560px; justify-self: end; }
+  .hero__lead { font-size: clamp(1.05rem, 1.4vw, 1.25rem); }
+  .hero__akcje { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+  .hero__foto { width: 100%; height: clamp(320px, 52vw, 700px); }
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding-left: 0; }
+    .hero__tresc { padding: 36px var(--margines) 0; justify-self: stretch; }
+    .hero__foto { height: 280px; }
+  }
+
+  .sciezki { margin-top: 40px; border-bottom: 1px solid var(--linia-mocna); }
+  .sciezka { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr) auto; gap: clamp(16px, 4vw, 48px); align-items: baseline; padding-block: 32px; border-top: 1px solid var(--linia-mocna); }
+  .sciezka__tytul { font-size: clamp(1.6rem, 3.4vw, 2.6rem); }
+  .sciezka__opis { color: var(--tekst-drugi); }
+  @media (max-width: 860px) { .sciezka { grid-template-columns: 1fr; gap: 12px; } }
+
+  .wartosc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: clamp(32px, 6vw, 96px); align-items: start; }
+  .wartosc--jedna { grid-template-columns: minmax(0, 1fr); }
+  .decyzja__lead { margin: 14px 0 clamp(24px, 4vw, 48px); max-width: 56ch; color: var(--tekst-drugi); }
+  .wartosc__lead { margin-top: 20px; font-size: 1.15rem; max-width: 560px; }
+  .dzialania { margin: 28px 0; max-width: 560px; border-bottom: 1px solid var(--linia); }
+  .dzialania li { display: flex; flex-direction: column; gap: 4px; padding-block: 16px; border-top: 1px solid var(--linia); }
+  .dzialania strong { font-size: 1.05rem; }
+  .dzialania span { color: var(--tekst-drugi); font-size: 0.97rem; }
+  .decyzja { background: var(--szary-tlo); padding: clamp(24px, 4vw, 44px); }
+  .decyzja__tytul { font-size: 15px; font-weight: 600; color: var(--tekst-drugi); margin-bottom: 20px; }
+  .decyzja ol { display: flex; flex-direction: column; gap: 18px; }
+  .decyzja li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; }
+  .decyzja__nr { font-family: var(--font-naglowek); font-size: 1.3rem; color: var(--granat); }
+  .decyzja li strong { display: block; }
+  .decyzja li span span { color: var(--tekst-drugi); font-size: 0.97rem; }
+  @media (max-width: 900px) { .wartosc { grid-template-columns: 1fr; } }
+
+  .model__gora { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
+  .model__lead { color: #C9D2DC; margin-top: 12px; }
+  .model__zakladki { display: flex; gap: 8px; flex-wrap: wrap; }
+  .model__zakladka { min-height: 46px; padding: 0 18px; font: inherit; font-size: 15px; border-radius: 2px; cursor: pointer; background: transparent; color: var(--biel); border: 1px solid #4A6178; }
+  .model__zakladka--aktywna { background: var(--zloto); color: var(--granat); border-color: var(--zloto); font-weight: 600; }
+  .model__etapy { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; margin-top: 48px; }
+  .model__etapy li { border-top: 1px solid var(--zloto); padding-top: 22px; display: flex; flex-direction: column; gap: 12px; }
+  .model__nr { font-family: var(--font-naglowek); color: var(--zloto); }
+  .model__etapy p { color: #C9D2DC; font-size: 0.97rem; }
+  .model__nota { margin-top: 40px; font-size: 15px; color: #C9D2DC; }
+  @media (max-width: 860px) { .model__etapy { grid-template-columns: 1fr; gap: 24px; margin-top: 32px; } }
+
+  .pas { width: 100%; height: clamp(200px, 26vw, 380px); }
+  .pracujemy { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: clamp(24px, 5vw, 80px); margin-top: clamp(32px, 5vw, 56px); }
+  .pracujemy__kolumny { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+  .pracujemy__kolumny div { display: flex; flex-direction: column; gap: 10px; border-top: 2px solid var(--zloto); padding-top: 16px; max-width: 34ch; }
+  .pracujemy__kolumny p { color: var(--tekst-drugi); font-size: 0.97rem; }
+  @media (max-width: 900px) { .pracujemy, .pracujemy__kolumny { grid-template-columns: 1fr; } }
+
+  .pas-wyceny { border-top: 3px solid var(--zloto); }
+  .pas-wyceny__wnetrze { display: flex; justify-content: space-between; align-items: center; gap: 40px; flex-wrap: wrap; }
+  .pas-wyceny__haslo { font-size: clamp(2rem, 4vw, 3.2rem); margin-bottom: 12px; }
+  .pas-wyceny p { max-width: 620px; }
+  .pas-wyceny__akcje { display: flex; flex-direction: column; gap: 12px; min-width: 260px; }
+
+  .kontakt { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 540px); gap: clamp(32px, 6vw, 88px); align-items: start; }
+  .kontakt__tresc { display: flex; flex-direction: column; gap: 22px; }
+  .kontakt__dane { display: flex; flex-direction: column; gap: 18px; margin: 0; }
+  .kontakt__dane dt { font-size: 14px; color: var(--tekst-drugi); }
+  .kontakt__dane dd { margin: 0; }
+  .kontakt__telefon { font-family: var(--font-naglowek); font-size: 1.6rem; text-decoration: none; }
+  .kontakt__szybka { border-top: 1px solid var(--linia-mocna); padding-top: 20px; color: var(--tekst-drugi); }
+  @media (max-width: 900px) { .kontakt { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  const zakladki = document.querySelectorAll<HTMLButtonElement>('.model__zakladka');
+  zakladki.forEach((z) => {
+    z.addEventListener('click', () => {
+      zakladki.forEach((inna) => {
+        const panel = document.getElementById(inna.getAttribute('aria-controls')!);
+        const aktywna = inna === z;
+        inna.setAttribute('aria-selected', String(aktywna));
+        inna.classList.toggle('model__zakladka--aktywna', aktywna);
+        if (panel) panel.hidden = !aktywna;
+      });
+    });
+  });
+</script>

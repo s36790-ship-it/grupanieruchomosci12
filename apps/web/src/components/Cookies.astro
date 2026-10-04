@@ -1,0 +1,70 @@
+---
+// Baner zgód. Domyślnie nie uruchamiamy żadnych skryptów opcjonalnych.
+// Analityka startuje dopiero po zgodzie — patrz docs/SEO_TECH.md i docs/DEPLOYMENT.md.
+---
+<div id="zgody" class="zgody" role="region" aria-label="Informacja o plikach cookies" hidden>
+  <div class="zgody__tresc">
+    <h2>Pliki cookies</h2>
+    <p>
+      Używamy plików cookies niezbędnych do działania strony. Dodatkowe pliki — statystyczne, pomagające nam
+      zrozumieć, które treści są przydatne — uruchamiamy dopiero po Twojej zgodzie. Zgodę możesz w każdej chwili
+      wycofać w stopce. Więcej w <a href="/cookies">informacji o cookies</a> i
+      <a href="/polityka-prywatnosci">polityce prywatności</a>.
+    </p>
+  </div>
+  <div class="zgody__akcje">
+    <button type="button" class="przycisk" data-zgoda="wszystkie">Akceptuję wszystkie</button>
+    <button type="button" class="przycisk przycisk--obrys" data-zgoda="niezbedne">Tylko niezbędne</button>
+  </div>
+</div>
+
+<style>
+  .zgody {
+    position: fixed; inset-inline: 0; bottom: 0; z-index: 60;
+    display: flex; gap: clamp(16px, 3vw, 40px); align-items: center; justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 20px var(--margines);
+    background: var(--biel); border-top: 3px solid var(--zloto);
+    box-shadow: 0 -8px 24px rgba(22, 45, 67, 0.12);
+  }
+  .zgody__tresc { max-width: 70ch; display: flex; flex-direction: column; gap: 8px; }
+  .zgody h2 { font-size: 1.15rem; }
+  .zgody p { font-size: 15px; color: var(--tekst-drugi); }
+  .zgody__akcje { display: flex; gap: 12px; flex-wrap: wrap; }
+  .zgody__akcje .przycisk { min-height: 50px; font-size: 16px; }
+  @media (max-width: 720px) { .zgody__akcje .przycisk { flex: 1 1 100%; } }
+</style>
+
+<script>
+  const KLUCZ = 'gn-zgody';
+  const baner = document.getElementById('zgody');
+  if (baner) {
+    const zapisz = (wartosc: string) => {
+      try { localStorage.setItem(KLUCZ, JSON.stringify({ wybor: wartosc, data: new Date().toISOString() })); } catch {}
+    };
+    const odczytaj = () => {
+      try { return JSON.parse(localStorage.getItem(KLUCZ) || 'null'); } catch { return null; }
+    };
+    const pokaz = () => { baner.hidden = false; };
+    const schowaj = () => { baner.hidden = true; };
+
+    if (!odczytaj()) pokaz();
+
+    baner.querySelectorAll<HTMLButtonElement>('[data-zgoda]').forEach((guzik) => {
+      guzik.addEventListener('click', () => {
+        const wybor = guzik.dataset.zgoda!;
+        zapisz(wybor);
+        schowaj();
+        if (wybor === 'wszystkie') document.dispatchEvent(new CustomEvent('zgoda-statystyki'));
+      });
+    });
+
+    document.querySelectorAll('[data-otworz-zgody]').forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        pokaz();
+        baner.querySelector<HTMLButtonElement>('[data-zgoda]')?.focus();
+      });
+    });
+  }
+</script>

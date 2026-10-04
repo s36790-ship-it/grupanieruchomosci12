@@ -1,0 +1,23 @@
+{
+  // Cloudflare Workers: statyczna strona Astro (dist/) + mały Worker na formularz (worker/index.ts).
+  // Deploy: Workers Builds z GitHuba (build: npm run build, deploy: npx wrangler deploy) — patrz docs/WDROZENIE.md.
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "grupa-nieruchomosci",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    // Worker uruchamia się tylko dla /api/* — reszta to pliki statyczne (bez zużycia CPU).
+    "run_worker_first": ["/api/*"]
+  },
+  "observability": { "enabled": true },
+  "vars": {
+    "FORMULARZ_ODBIORCA": "kontakt@grupa-nieruchomosci.pl",
+    "FORMULARZ_NADAWCA": "Grupa Nieruchomości <formularz@grupa-nieruchomosci.pl>",
+    "DOZWOLONE_ORIGINY": "https://grupa-nieruchomosci.pl,https://www.grupa-nieruchomosci.pl"
+  }
+  // RESEND_API_KEY ustawiamy jako Secret w panelu Cloudflare (albo: npx wrangler secret put RESEND_API_KEY).
+  // Nigdy nie wpisujemy go do tego pliku ani do repozytorium.
+}

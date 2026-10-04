@@ -1,0 +1,16 @@
+# Lokalna baza danych do pracy nad CMS-em.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gn-postgres
+    environment:
+      POSTGRES_USER: gn
+      POSTGRES_PASSWORD: gn
+      POSTGRES_DB: gn
+    ports:
+      - '5432:5432'
+    volumes:
+      - gn-dane:/var/lib/postgresql/data
+
+volumes:
+  gn-dane:
