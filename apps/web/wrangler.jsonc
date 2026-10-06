@@ -2,7 +2,7 @@
   // Cloudflare Workers: statyczna strona Astro (dist/) + mały Worker na formularz (worker/index.ts).
   // Deploy: Workers Builds z GitHuba (build: npm run build, deploy: npx wrangler deploy) — patrz docs/WDROZENIE.md.
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "grupanieruchomosci12",
+  "name": "grupanieruchomosci",
   "main": "./worker/index.ts",
   "compatibility_date": "2026-10-01",
   "assets": {
